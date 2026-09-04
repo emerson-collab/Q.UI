@@ -1,5 +1,3 @@
-export type JsonObject = Readonly<Record<string, unknown>>;
-
 export interface StableErrorOutcome {
   readonly outcome_type: "stable_error";
   readonly stable_error: Readonly<{ case: string }>;
@@ -12,7 +10,7 @@ export interface UiHostResult {
   readonly ui_host_ref: string;
   readonly host_instance_ref: string;
   readonly render_artifact_ref: string;
-  readonly lifecycle_state: "active" | "inactive";
+  readonly lifecycle_state: string;
   readonly receipt_ref: string;
 }
 
@@ -32,7 +30,6 @@ export interface ActivateUiHostRequest {
   readonly trace_id: string;
   readonly request_id: string;
 }
-
 export interface ActivateUiHostResponse {
   readonly outcome_type: "response";
   readonly ui_host_result: UiHostResult;
@@ -41,7 +38,6 @@ export interface ActivateUiHostResponse {
   readonly trace_id: string;
   readonly request_id: string;
 }
-
 export type ActivateUiHostOutcome = ActivateUiHostResponse | StableErrorOutcome;
 
 export interface DeactivateUiHostRequest {
@@ -51,7 +47,6 @@ export interface DeactivateUiHostRequest {
   readonly trace_id: string;
   readonly request_id: string;
 }
-
 export interface DeactivateUiHostResponse {
   readonly outcome_type: "response";
   readonly ui_host_result: UiHostResult;
@@ -60,5 +55,4 @@ export interface DeactivateUiHostResponse {
   readonly trace_id: string;
   readonly request_id: string;
 }
-
 export type DeactivateUiHostOutcome = DeactivateUiHostResponse | StableErrorOutcome;

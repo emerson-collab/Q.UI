@@ -1,70 +1,38 @@
 {
-  "capability_contract_hash": "sha256:818dd6b155cf505362b2e648a1088bebd6448e841d83c6ae04e79cadac6eb203",
-  "capability_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0105",
+  "capability_contract_hash": "sha256:337a3bbabd39b9a414cdbafa69b8ea2a0d53a3dd511927d11736d19afdfdd04d",
+  "capability_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0106",
   "interfaces": {
     "ui_surface_creation_invoke": {
-      "dynamic_mount": [
-        "surface_input",
-        "ui_surface_artifact",
-        "outcome_type",
-        "stable_error",
-        "evidence_ref",
-        "receipt_ref"
-      ],
-      "interface_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0105#/interfaces/ui_surface_creation_invoke",
+      "dynamic_mount": ["surface_input","ui_surface_artifact","outcome_type","stable_error","evidence_ref","receipt_ref"],
+      "interface_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0106#/interfaces/ui_surface_creation_invoke",
       "kind": "CALL_INVOKE",
       "kind_code": "M1",
       "method_ref": "create_ui_surface",
-      "operation_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0105#/operations/create_ui_surface",
-      "outcome_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0105#/type_closure/outcome_contracts/call_outcome",
-      "owner_capability_ref": "Q.UI.CAPABILITY.UI_SURFACE@V0105",
-      "path": [
-        "ui_surface_ref",
-        "trace_id",
-        "request_id"
-      ],
-      "request_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0105#/operations/create_ui_surface/request_contract",
-      "response_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0105#/operations/create_ui_surface/response_contract",
-      "stable_error_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0105#/stable_errors/create_ui_surface",
-      "static_mount": [
-        "ui_surface_contract_ref",
-        "ui_module_refs",
-        "layout_profile_ref",
-        "navigation_profile_ref",
-        "interaction_policy_refs"
-      ],
+      "operation_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0106#/operations/create_ui_surface",
+      "outcome_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0106#/type_closure/outcome_contracts/call_outcome",
+      "owner_capability_ref": "Q.UI.CAPABILITY.UI_SURFACE@V0106",
+      "path": ["ui_surface_ref","trace_id","request_id"],
+      "request_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0106#/operations/create_ui_surface/request_contract",
+      "response_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0106#/operations/create_ui_surface/response_contract",
+      "stable_error_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0106#/stable_errors/create_ui_surface",
+      "static_mount": ["ui_surface_contract_ref","ui_module_refs","layout_profile_ref","navigation_profile_ref","interaction_policy_refs"],
       "status": "active",
       "surface": "CALL"
     },
     "ui_surface_resolution_invoke": {
-      "dynamic_mount": [
-        "resolution_input",
-        "ui_surface_artifact",
-        "outcome_type",
-        "stable_error",
-        "evidence_ref",
-        "receipt_ref"
-      ],
-      "interface_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0105#/interfaces/ui_surface_resolution_invoke",
+      "dynamic_mount": ["resolution_input","ui_surface_artifact","outcome_type","stable_error","evidence_ref","receipt_ref"],
+      "interface_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0106#/interfaces/ui_surface_resolution_invoke",
       "kind": "CALL_INVOKE",
       "kind_code": "M1",
       "method_ref": "resolve_ui_surface",
-      "operation_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0105#/operations/resolve_ui_surface",
-      "outcome_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0105#/type_closure/outcome_contracts/call_outcome",
-      "owner_capability_ref": "Q.UI.CAPABILITY.UI_SURFACE@V0105",
-      "path": [
-        "ui_surface_ref",
-        "trace_id",
-        "request_id"
-      ],
-      "request_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0105#/operations/resolve_ui_surface/request_contract",
-      "response_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0105#/operations/resolve_ui_surface/response_contract",
-      "stable_error_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0105#/stable_errors/resolve_ui_surface",
-      "static_mount": [
-        "ui_surface_contract_ref",
-        "surface_registry_ref",
-        "compatibility_ref"
-      ],
+      "operation_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0106#/operations/resolve_ui_surface",
+      "outcome_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0106#/type_closure/outcome_contracts/call_outcome",
+      "owner_capability_ref": "Q.UI.CAPABILITY.UI_SURFACE@V0106",
+      "path": ["ui_surface_ref","trace_id","request_id"],
+      "request_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0106#/operations/resolve_ui_surface/request_contract",
+      "response_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0106#/operations/resolve_ui_surface/response_contract",
+      "stable_error_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0106#/stable_errors/resolve_ui_surface",
+      "static_mount": ["ui_surface_contract_ref","surface_registry_ref","compatibility_ref"],
       "status": "active",
       "surface": "CALL"
     }

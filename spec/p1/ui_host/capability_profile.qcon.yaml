@@ -1,34 +1,37 @@
-capability_ref: Q.UI.CAPABILITY.UI_HOST@V0105
-capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0105
-capability_contract_hash: sha256:bd442fc64b9a62092e944f439364220bc23df0dc30434243f8b3b63b3b2de3cf
+capability_ref: Q.UI.CAPABILITY.UI_HOST@V0106
+capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0106
+capability_contract_hash: sha256:d6944d54adec80d56aadc46a03ebd607c77ca2591c74e92b0adb5419c0e1be61
 capability_id: ui_host
-capability_version: V0105
+capability_version: V0106
 mode: PUBLICATION_ELIGIBLE
 public_operation_refs:
-- Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0105#/operations/activate_ui_host
-- Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0105#/operations/deactivate_ui_host
+- Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0106#/operations/activate_ui_host
+- Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0106#/operations/deactivate_ui_host
 public_interface_refs:
-- Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0105#/interfaces/ui_host_activation_invoke
-- Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0105#/interfaces/ui_host_deactivation_invoke
+- Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0106#/interfaces/ui_host_activation_invoke
+- Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0106#/interfaces/ui_host_deactivation_invoke
 runtime_contract_ref: Q.SS.STD.P0.CONTRACT.RUNTIME_CORE@V0134
 public_entry_ref: src/p1/export/ui_host/entry.ts#entry
 metadata_ref: src/p1/export/ui_host/metadata.ts#capability_extraction_metadata
 direct_handler_export_forbidden: true
 p1_static_extraction_only: true
-p2_publication_and_mount_realization_owner: Q.SS.STD.P2.CONTRACT.CROSS_DOMAIN_REALIZATION@V0115
+p2_publication_and_mount_realization_owner: Q.SS.STD.P2.CONTRACT.CROSS_DOMAIN_REALIZATION@V0118
 dependencies:
   ui_render:
     classification: INTRA_DOMAIN_CAPABILITY_DEPENDENCY
-    provider_capability_ref: Q.UI.CAPABILITY.UI_RENDER@V0105
-    provider_capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0105
+    provider_capability_ref: Q.UI.CAPABILITY.UI_RENDER@V0106
+    provider_capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0106
     cross_domain_realization_required: false
+    exact_target_ref_and_hash_resolved_before_use: true
+    direct_handler_import_forbidden: true
   q_workflow:
     classification: CROSS_DOMAIN_CAPABILITY_DEPENDENCY
     provider_domain_ref: Q.WORKFLOW.CONTRACT.DOMAIN@${CURRENT}
-    provider_capability_ref: Q.WORKFLOW.CAPABILITY.WORKFLOW@V0101
-    allowed_operation_ref: Q.WORKFLOW.OPERATION.EXECUTE_WORKFLOW@V0101
-    exact_interface_ref: Q.WORKFLOW.INTERFACE.WORKFLOW_EXECUTION_INVOKE@V0101
-    realization_owner: Q.SS.STD.P2.CONTRACT.CROSS_DOMAIN_REALIZATION@${CURRENT}
+    allowed_operation_ref: Q.WORKFLOW.CONTRACT.CAPABILITY.WORKFLOW@${CURRENT}#/operations/execute_workflow
+    exact_interface_ref: Q.WORKFLOW.CONTRACT.CAPABILITY.WORKFLOW@${CURRENT}#/interfaces/workflow_execution_invoke
+    realization_owner: Q.SS.STD.P2.CONTRACT.CROSS_DOMAIN_REALIZATION@V0118
     direct_provider_implementation_forbidden: true
+    provider_capability_contract_ref: Q.WORKFLOW.CONTRACT.CAPABILITY.WORKFLOW@${CURRENT}
+    exact_target_ref_and_hash_resolved_before_call: true
 fixed_skeleton_mutation_forbidden: true
 extra_operation_file_forbidden_by_default: true

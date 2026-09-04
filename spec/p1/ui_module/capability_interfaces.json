@@ -1,41 +1,21 @@
 {
-  "capability_contract_hash": "sha256:d886a090c8e5f13db8328e78dc21ccce423fbeed7b2e58176798638776e8cdcb",
-  "capability_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0105",
+  "capability_contract_hash": "sha256:2554f49d8e782fbe44a80b024c2d1fdc736d8058e8be8b0ef21feb51ba40be8b",
+  "capability_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0106",
   "interfaces": {
     "ui_module_resolution_invoke": {
-      "dynamic_mount": [
-        "projection_input",
-        "ui_module_artifact",
-        "outcome_type",
-        "stable_error",
-        "evidence_ref",
-        "receipt_ref"
-      ],
-      "interface_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0105#/interfaces/ui_module_resolution_invoke",
+      "dynamic_mount": ["projection_input","ui_module_artifact","outcome_type","stable_error","evidence_ref","receipt_ref"],
+      "interface_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0106#/interfaces/ui_module_resolution_invoke",
       "kind": "CALL_INVOKE",
       "kind_code": "M1",
       "method_ref": "resolve_ui_module",
-      "operation_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0105#/operations/resolve_ui_module",
-      "outcome_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0105#/type_closure/outcome_contracts/call_outcome",
-      "owner_capability_ref": "Q.UI.CAPABILITY.UI_MODULE@V0105",
-      "path": [
-        "source_capability_ref",
-        "projection_ref",
-        "trace_id",
-        "request_id"
-      ],
-      "request_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0105#/operations/resolve_ui_module/request_contract",
-      "response_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0105#/operations/resolve_ui_module/response_contract",
-      "stable_error_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0105#/stable_errors/resolve_ui_module",
-      "static_mount": [
-        "ui_module_contract_ref",
-        "source_contract_ref",
-        "source_operation_refs",
-        "source_interface_refs",
-        "source_permission_refs",
-        "source_state_refs",
-        "source_evidence_projection_refs"
-      ],
+      "operation_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0106#/operations/resolve_ui_module",
+      "outcome_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0106#/type_closure/outcome_contracts/call_outcome",
+      "owner_capability_ref": "Q.UI.CAPABILITY.UI_MODULE@V0106",
+      "path": ["source_capability_ref","projection_ref","trace_id","request_id"],
+      "request_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0106#/operations/resolve_ui_module/request_contract",
+      "response_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0106#/operations/resolve_ui_module/response_contract",
+      "stable_error_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0106#/stable_errors/resolve_ui_module",
+      "static_mount": ["ui_module_contract_ref","source_contract_ref","source_operation_refs","source_interface_refs","source_permission_refs","source_state_refs","source_evidence_projection_refs"],
       "status": "active",
       "surface": "CALL"
     }

@@ -3,13 +3,13 @@ import { create_client } from "./client.ts";
 import { capability_extraction_metadata } from "./metadata.ts";
 
 export const stage_extension = create_p1_capability_stage_extension({
-  implementation_ref: "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0105",
-  provided_interface_refs: ["Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0105#/interfaces/ui_render_execution_invoke"],
+  implementation_ref: "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0106",
+  provided_interface_refs: ["Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0106#/interfaces/ui_render_execution_invoke"],
 });
 
 export const entry = Object.freeze({
-  capability_ref: "Q.UI.CAPABILITY.UI_RENDER@V0105",
-  capability_contract_ref: "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0105",
+  capability_ref: "Q.UI.CAPABILITY.UI_RENDER@V0106",
+  capability_contract_ref: "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0106",
   metadata_ref: "src/p1/export/ui_render/metadata.ts#capability_extraction_metadata",
   client_ref: "src/p1/export/ui_render/client.ts#create_client",
   stage_extension,
