@@ -1,30 +1,12 @@
-import test from "node:test";
 import assert from "node:assert/strict";
-import { handler, OPERATION_REF } from "../../../../src/p1/ui_module/resolve_ui_module/handler.ts";
-import { registered_business_operation_refs } from "../../../../src/p1/business_runtime/business_operation_registry.ts";
-
-test("resolve_ui_module materializes the closed module artifact", async () => {
-  const result = await handler({
-    source_capability_ref: "Q.EXAMPLE.CAPABILITY.PAGE@V0100",
-    projection_ref: "Q.UI.MODULE.PROJECTION@V0100",
-    projection_input: { semantic_model: { regions: ["main"] }, action_bindings: [], state_bindings: [], evidence_views: [] },
-    trace_id: "trace-1", request_id: "request-1",
-  });
-  assert.equal(result.outcome_type, "response");
-  if (result.outcome_type !== "response") return;
-  assert.equal(result.ui_module_artifact.ui_module_ref, "Q.UI.MODULE.PROJECTION@V0100");
-  assert.match(result.ui_module_artifact.content_hash, /^sha256:[0-9a-f]{64}$/);
-  assert.ok(registered_business_operation_refs().includes(OPERATION_REF));
-});
-
-test("resolve_ui_module fails closed on invalid framework input", async () => {
-  const result = await handler({
-    source_capability_ref: "Q.EXAMPLE.CAPABILITY.PAGE@V0100",
-    projection_ref: "Q.UI.MODULE.PROJECTION@V0100",
-    projection_input: { semantic_model: {} },
-    trace_id: "trace-2", request_id: "request-2",
-  });
-  assert.equal(result.outcome_type, "stable_error");
-  if (result.outcome_type !== "stable_error") return;
-  assert.equal(result.stable_error.case, "framework input invalid");
-});
+import test from "node:test";
+import { handler } from "../../../../src/p1/ui_module/resolve_ui_module/handler.ts";
+function typedInput() {
+  const sourceContractRef = "Q.TEST.CONTRACT.CAPABILITY.EXAMPLE@V0100";
+  const requestRef = `${sourceContractRef}#/contracts/create_request`;
+  const responseRef = `${sourceContractRef}#/contracts/create_response`;
+  return {source_capability_ref:"Q.TEST.CAPABILITY.EXAMPLE@V0100",projection_ref:"Q.TEST.UI.MODULE.EXAMPLE@V0100",trace_id:"trace-1",request_id:"req-1",projection_input:{framework_artifact_ref:"Q.APP.PRESENTATION.EXAMPLE@V0100",framework_artifact_hash:`sha256:${"1".repeat(64)}`,capability_presentation_specification:{source_capability_ref:"Q.TEST.CAPABILITY.EXAMPLE@V0100",presentation_requirements:{},presentation_subjects:[{presentation_subject_ref:"subject:example",subject_kind:"RESOURCE",source_semantic_refs:["example_record"]}],operation_presentation_bindings:[{source_operation_ref:`${sourceContractRef}#/operations/create_example`,disposition:"USER_PRESENTED",presentation_subject_ref:"subject:example",placement_intent:"PRIMARY_ACTION",action_scope:"RESOURCE_COLLECTION",visibility_intent:"PRIMARY",exact_action_binding_ref:"action:create-example"}]},ui_module_instance_requirement:{q_ui_contract_ref:"Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0108",source_capability_ref:"Q.TEST.CAPABILITY.EXAMPLE@V0100"},source_capability_contract_ref:sourceContractRef,source_capability_contract_hash:`sha256:${"2".repeat(64)}`,source_capability_semantic_projection:{business_object_ownership:{owned_business_objects:["example_record"]},state_model:{allowed_business_states:["DRAFT","ACTIVE"]},operations:{create_example:{operation_ref:`${sourceContractRef}#/operations/create_example`}},payload_schema_bindings:{create_example:{request_contract_ref:requestRef,response_contract_ref:responseRef}},contracts:{create_request:{contract_ref:requestRef,input_schema:{type:"object",properties:{name:{type:"string"},priority:{enum:["HIGH","LOW"]},count:{type:["integer","null"]},flags:{type:"array"}},required:["name","priority"]}},create_response:{contract_ref:responseRef,runtime_result_schema:{type:"object",properties:{example_ref:{type:"string"},state:{type:"string"},revision:{type:"integer"}},required:["example_ref","state","revision"]}}}}}}};
+}
+test("deterministic payload-type to UI control mapping preserves order/requiredness",async()=>{const r:any=await handler(typedInput());assert.equal(r.outcome_type,"response");assert.deepEqual(r.ui_module_artifact.action_bindings[0].controls.map((x:any)=>[x.field_name,x.control_kind,x.required]),[["name","TEXT_INPUT",true],["priority","SELECT_INPUT",true],["count","NUMBER_INPUT",false],["flags","COLLECTION_INPUT",false]]);assert.deepEqual(r.ui_module_artifact.state_bindings.map((x:any)=>x.state_name),["DRAFT","ACTIVE"]);});
+test("untyped USER_PRESENTED payload fails closed instead of guessing",async()=>{const x:any=typedInput();x.projection_input.source_capability_semantic_projection.contracts.create_request.input_schema={type:"object",required:["name"],properties:{name:{}}};const r:any=await handler(x);assert.equal(r.outcome_type,"stable_error");assert.equal(r.stable_error.case,"framework input invalid");});
+test("BACKGROUND operation creates no user action control",async()=>{const x:any=typedInput();x.projection_input.capability_presentation_specification.operation_presentation_bindings[0]={source_operation_ref:"Q.TEST.CONTRACT.CAPABILITY.EXAMPLE@V0100#/operations/create_example",disposition:"BACKGROUND",background_reason:"system-maintained"};const r:any=await handler(x);assert.equal(r.outcome_type,"response");assert.equal(r.ui_module_artifact.action_bindings.length,0);});

@@ -10,7 +10,7 @@ function sha256Json(value: unknown): string { return `sha256:${createHash("sha25
 export interface StableErrorOutcome { readonly outcome_type: "stable_error"; readonly stable_error: Readonly<{ case: string }>; readonly evidence_ref: string; readonly trace_id: string; readonly request_id: string; }
 function stableError(trace_id: string, request_id: string, semantic_case: string): StableErrorOutcome { const stable_error = Object.freeze({ case: semantic_case }); return Object.freeze({ outcome_type: "stable_error" as const, stable_error, evidence_ref: sha256Json({ operation_ref: OPERATION_REF, stable_error, trace_id, request_id }), trace_id, request_id }); }
 export const CAPABILITY_ID = "ui_render" as const;
-export const CAPABILITY_CONTRACT_REF = "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0106" as const;
+export const CAPABILITY_CONTRACT_REF = "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0108" as const;
 export const OPERATION_ID = "execute_ui_render" as const;
 export const OPERATION_REF = `${CAPABILITY_CONTRACT_REF}#/operations/${OPERATION_ID}` as const;
 export interface ExecuteUiRenderRequest { readonly ui_render_ref: string; readonly ui_surface_ref: string; readonly render_input: unknown; readonly trace_id: string; readonly request_id: string; }

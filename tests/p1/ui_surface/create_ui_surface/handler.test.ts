@@ -1,28 +1,7 @@
-import test from "node:test";
-import assert from "node:assert/strict";
-import { handler, OPERATION_REF } from "../../../../src/p1/ui_surface/create_ui_surface/handler.ts";
-import { registered_business_operation_refs } from "../../../../src/p1/business_runtime/business_operation_registry.ts";
-
-test("create_ui_surface closes exact surface structure", async () => {
-  const result = await handler({
-    ui_surface_ref: "Q.UI.SURFACE@V0100",
-    surface_input: { ui_module_refs: ["Q.UI.MODULE@V0100"], regions: [{id:"main"}], slots: [], navigation_projection: {}, interaction_bindings: [] },
-    trace_id: "trace-1", request_id: "request-1",
-  });
-  assert.equal(result.outcome_type, "response");
-  if (result.outcome_type !== "response") return;
-  assert.equal(result.ui_surface_artifact.ui_surface_ref, "Q.UI.SURFACE@V0100");
-  assert.match(result.ui_surface_artifact.content_hash, /^sha256:[0-9a-f]{64}$/);
-  assert.ok(registered_business_operation_refs().includes(OPERATION_REF));
-});
-
-test("create_ui_surface rejects empty module lineage", async () => {
-  const result = await handler({
-    ui_surface_ref: "Q.UI.SURFACE@V0100",
-    surface_input: { ui_module_refs: [], regions: [], slots: [], navigation_projection: {}, interaction_bindings: [] },
-    trace_id: "trace-2", request_id: "request-2",
-  });
-  assert.equal(result.outcome_type, "stable_error");
-  if (result.outcome_type !== "stable_error") return;
-  assert.equal(result.stable_error.case, "module lineage conflict");
-});
+import assert from "node:assert/strict";import test from "node:test";import { createHash } from "node:crypto";import { handler } from "../../../../src/p1/ui_surface/create_ui_surface/handler.ts";
+function stable(v:any):any{if(Array.isArray(v))return v.map(stable);if(v&&typeof v==='object'){const o:any={};for(const k of Object.keys(v).sort())o[k]=stable(v[k]);return o;}return v;}function sha(v:any){return`sha256:${createHash('sha256').update(JSON.stringify(stable(v))).digest('hex')}`;}
+function moduleArtifact(ref:string,subjectRef:string,operationRef:string){const body:any={ui_module_ref:ref,source_capability_ref:"Q.TEST.CAPABILITY.EXAMPLE@V0100",projection_ref:ref,semantic_model:{version:"Q_UI_MODULE_SEMANTIC_MODEL_V1",subjects:[{presentation_subject_ref:subjectRef,subject_kind:"RESOURCE",model_kind:"RESOURCE_VIEW_MODEL",source_semantic_refs:["example_record"]}],operations:[]},action_bindings:[{source_operation_ref:operationRef,presentation_subject_ref:subjectRef,placement_intent:"PRIMARY_ACTION",placement_kind:"PRIMARY_ACTION",exact_action_binding_ref:`action:${operationRef}`,interaction_kind:"USER",controls:[],response_views:[]}],state_bindings:[],evidence_views:[]};return{...body,content_hash:sha(body)};}
+function input(modules:any[]){return{ui_surface_ref:"Q.TEST.UI.SURFACE@V0100",trace_id:"t",request_id:"r",surface_input:{application_framework_artifact_ref:"Q.APP.APPLICATION.PRESENTATION@V0100",application_framework_artifact_hash:`sha256:${"a".repeat(64)}`,application_presentation_specification:{presentation_subject_groups:[{group_ref:"group:main",group_kind:"RESOURCE_GROUP",member_subject_refs:["subject:a","subject:b"],navigation_intent:"PRIMARY"}],detail_relationships:{exact:"opaque"},contextual_action_groups:{}},ui_module_artifacts:modules}};}
+test("composes region/slot order without inventing concrete navigation widget",async()=>{const r:any=await handler(input([moduleArtifact("module:a","subject:a","op:a"),moduleArtifact("module:b","subject:b","op:b")]));assert.equal(r.outcome_type,"response");assert.deepEqual(r.ui_surface_artifact.slots.map((x:any)=>x.presentation_subject_ref),["subject:a","subject:b"]);assert.equal("sidebar" in r.ui_surface_artifact.navigation_projection,false);assert.deepEqual(r.ui_surface_artifact.navigation_projection.detail_relationships,{exact:"opaque"});});
+test("missing subject lineage fails closed",async()=>{const r:any=await handler(input([moduleArtifact("module:a","subject:a","op:a")]));assert.equal(r.outcome_type,"stable_error");assert.equal(r.stable_error.case,"module lineage conflict");});
+test("duplicate subject lineage fails closed",async()=>{const r:any=await handler(input([moduleArtifact("module:a","subject:a","op:a"),moduleArtifact("module:dup","subject:a","op:dup"),moduleArtifact("module:b","subject:b","op:b")]));assert.equal(r.outcome_type,"stable_error");});
