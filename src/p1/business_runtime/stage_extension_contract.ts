@@ -1,7 +1,7 @@
 import { P0_CONTRACT_REF, P0_PROVIDER_SYMBOL_REF, deep_freeze } from "../../p0/runtime_contract.ts";
 import type { StageExtensionContract } from "../../p0/runtime_contract.ts";
 
-export const P1_CONTRACT_REF = "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0175" as const;
+export const P1_CONTRACT_REF = "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0179" as const;
 
 export interface P1CapabilityOverlayBinding {
   readonly implementation_ref: string;
@@ -11,9 +11,7 @@ export interface P1CapabilityOverlayBinding {
   readonly port_refs?: readonly string[];
 }
 
-export function create_p1_capability_stage_extension(
-  binding: P1CapabilityOverlayBinding,
-): StageExtensionContract {
+function projectStageExtension(binding: P1CapabilityOverlayBinding): StageExtensionContract {
   return deep_freeze({
     stage_id: "P1",
     stage_role: "NONE",
@@ -29,4 +27,10 @@ export function create_p1_capability_stage_extension(
     status: "active",
     rule_version_ref: P1_CONTRACT_REF,
   });
+}
+
+export function create_p1_capability_stage_extension(
+  binding: P1CapabilityOverlayBinding,
+): StageExtensionContract {
+  return projectStageExtension(binding);
 }
