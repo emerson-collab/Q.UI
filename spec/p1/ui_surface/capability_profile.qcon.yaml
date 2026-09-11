@@ -15,7 +15,7 @@ public_entry_ref: src/p1/export/ui_surface/entry.ts#entry
 metadata_ref: src/p1/export/ui_surface/metadata.ts#capability_extraction_metadata
 direct_handler_export_forbidden: true
 p1_static_extraction_only: true
-p2_publication_and_mount_realization_owner: Q.SS.STD.P2.CONTRACT.CROSS_DOMAIN_REALIZATION@V0118
+p2_publication_and_mount_realization_owner: Q.SS.STD.P2.CONTRACT.CROSS_DOMAIN_REALIZATION@V0123
 dependencies:
   ui_module:
     classification: INTRA_DOMAIN_CAPABILITY_DEPENDENCY
