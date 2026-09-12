@@ -1,6 +1,6 @@
 capability_ref: Q.UI.CAPABILITY.UI_RENDER@V0110
 capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0110
-capability_contract_hash: sha256:f71396a1b67a96ebf8831d2ddc10b0180771fb830c93beb1fdb6999a6e9ceb0a
+capability_contract_hash: sha256:fee52a824fdd4b163fd4ff8cca7b6a6a4b73f9587080ae206d425c86ddf241a2
 capability_id: ui_render
 capability_version: V0110
 mode: PUBLICATION_ELIGIBLE
