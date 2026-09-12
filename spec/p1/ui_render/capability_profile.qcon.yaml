@@ -1,13 +1,13 @@
-capability_ref: Q.UI.CAPABILITY.UI_RENDER@V0110
-capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0110
-capability_contract_hash: sha256:fee52a824fdd4b163fd4ff8cca7b6a6a4b73f9587080ae206d425c86ddf241a2
+capability_ref: Q.UI.CAPABILITY.UI_RENDER@V0111
+capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0111
+capability_contract_hash: sha256:78b8182852c8931aa3b7a94f8cc5b00aebf0fb5ad262931b4df92256ed9ad6a3
 capability_id: ui_render
-capability_version: V0110
+capability_version: V0111
 mode: PUBLICATION_ELIGIBLE
 public_operation_refs:
-- Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0110#/operations/execute_ui_render
+- Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0111#/operations/execute_ui_render
 public_interface_refs:
-- Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0110#/interfaces/ui_render_execution_invoke
+- Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0111#/interfaces/ui_render_execution_invoke
 runtime_contract_ref: Q.SS.STD.P0.CONTRACT.RUNTIME_CORE@V0134
 public_entry_ref: src/p1/export/ui_render/entry.ts#entry
 metadata_ref: src/p1/export/ui_render/metadata.ts#capability_extraction_metadata
@@ -17,8 +17,8 @@ p2_publication_and_mount_realization_owner: Q.SS.STD.P2.CONTRACT.CROSS_DOMAIN_RE
 dependencies:
   ui_surface:
     classification: PROVIDER_INTERNAL_DEPENDENCY
-    provider_capability_ref: Q.UI.CAPABILITY.UI_SURFACE@V0112
-    provider_capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0112
+    provider_capability_ref: Q.UI.CAPABILITY.UI_SURFACE@V0113
+    provider_capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0113
     cross_domain_realization_required: false
     exact_target_ref_and_hash_resolved_before_use: true
     direct_handler_import_forbidden: true
@@ -30,8 +30,8 @@ dependencies:
     exact_target_ref_and_hash_resolved_before_use: true
     direct_provider_implementation_forbidden: true
     dependency_ref: Q.UI.DEPENDENCY.THEME_BINDING@V0100
-    exact_owner_capability_ref: Q.UI.CAPABILITY.UI_RENDER@V0110
-    exact_receiving_operation_ref: Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0110#/operations/execute_ui_render
+    exact_owner_capability_ref: Q.UI.CAPABILITY.UI_RENDER@V0111
+    exact_receiving_operation_ref: Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0111#/operations/execute_ui_render
     exact_local_dependency_ref: Q.UI.DEPENDENCY.THEME_BINDING@V0100
     p1_dependency_interface_ref: Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0179#/interfaces/dependency_invoke
     p2_realization_ref: Q.SS.STD.P2.CONTRACT.CROSS_DOMAIN_REALIZATION@V0123
