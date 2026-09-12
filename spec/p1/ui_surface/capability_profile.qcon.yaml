@@ -1,6 +1,6 @@
 capability_ref: Q.UI.CAPABILITY.UI_SURFACE@V0112
 capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0112
-capability_contract_hash: sha256:c5a436df705152598afdb7b5fd5ac783ee7f9ed8f460b7019b210e0dc2849623
+capability_contract_hash: sha256:83c12e65b0b3e56eff672317c13eb4e29c8098cd9564d416b3c2708e31c1ec62
 capability_id: ui_surface
 capability_version: V0112
 mode: PUBLICATION_ELIGIBLE
