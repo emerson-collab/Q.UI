@@ -1,35 +1,15 @@
-import test from "node:test";
 import assert from "node:assert/strict";
-import { handler, OPERATION_REF } from "../../../../src/p1/ui_render/execute_ui_render/handler.ts";
-import { registered_business_operation_refs } from "../../../../src/p1/business_runtime/business_operation_registry.ts";
+import test from "node:test";
+import { createHash } from "node:crypto";
+import { StableRuntimeError } from "../../../../src/p0/runtime_contract.ts";
+import { handler } from "../../../../src/p1/ui_render/execute_ui_render/handler.ts";
+function stable(v:any):any{if(Array.isArray(v))return v.map(stable);if(v&&typeof v==='object'){const o:any={};for(const k of Object.keys(v).sort())o[k]=stable(v[k]);return o;}return v;}
+function sha(v:any){return`sha256:${createHash('sha256').update(JSON.stringify(stable(v))).digest('hex')}`;}
+function surface(){const body:any={ui_surface_ref:"surface:1",presentation_context_kind:"APPLICATION",presentation_context_ref:"app-context:1",presentation_context_provider_contract_ref:"Q.APP.CONTRACT.CAPABILITY.APPLICATION_PRESENTATION@V0109",ui_module_refs:["module:a"],regions:[],slots:[],navigation_projection:[],interaction_bindings:[],resolved_target_context:{device_class:"desktop"}};return{...body,content_hash:sha(body)};}
+function theme(){const body:any={effective_theme_ref:"theme:1",bindings:[{framework_role_ref:"root",theme_ref:"theme:1",appearance_variant_ref:null,visual_profile_ref:"profile:1",visual_profile:{color:{},typography:{},spacing:{},radius_and_shape:{},border_and_elevation:{},iconography_appearance:{},visual_density:{},surface_appearance:{},component_appearance:{},visual_motion_treatment:{},appearance_variants:{},accessibility_visual_requirements:{}}}]};return{...body,content_hash:sha(body)};}
 
-test("execute_ui_render preserves surface/theme/target lineage", async () => {
-  const result = await handler({
-    ui_render_ref: "Q.UI.RENDER@V0100",
-    ui_surface_ref: "Q.UI.SURFACE@V0100",
-    render_input: {
-      ui_surface_artifact: {ui_surface_ref:"Q.UI.SURFACE@V0100"},
-      renderer_provider_ref: "Q.UI.RENDERER@V0100",
-      theme_ref: "Q.THEME.BINDING@V0100",
-      target_profile_ref: "Q.UI.TARGET@V0100",
-    },
-    trace_id: "trace-1", request_id: "request-1",
-  });
-  assert.equal(result.outcome_type, "response");
-  if (result.outcome_type !== "response") return;
-  assert.equal(result.ui_render_artifact.theme_ref, "Q.THEME.BINDING@V0100");
-  assert.match(result.ui_render_artifact.content_hash, /^sha256:[0-9a-f]{64}$/);
-  assert.ok(registered_business_operation_refs().includes(OPERATION_REF));
-});
+test("execute_ui_render V0110 preserves exact Surface and Theme hashes",async()=>{const s=surface(),t=theme();const r:any=await handler({ui_render_ref:"render:1",ui_surface_ref:"surface:1",render_input:{ui_surface_artifact:s,theme_binding_artifact:t,renderer_provider_ref:"renderer:web",target_profile_ref:"target:web"}});assert.equal(r.ui_render_artifact.theme_ref,"theme:1");assert.equal(r.ui_render_artifact.ui_surface_hash,s.content_hash);assert.equal(r.ui_render_artifact.theme_binding_hash,t.content_hash);assert.match(r.ui_render_artifact.content_hash,/^sha256:[0-9a-f]{64}$/);});
 
-test("execute_ui_render fails closed without theme binding", async () => {
-  const result = await handler({
-    ui_render_ref: "Q.UI.RENDER@V0100",
-    ui_surface_ref: "Q.UI.SURFACE@V0100",
-    render_input: { ui_surface_artifact: {ui_surface_ref:"Q.UI.SURFACE@V0100"} },
-    trace_id: "trace-2", request_id: "request-2",
-  });
-  assert.equal(result.outcome_type, "stable_error");
-  if (result.outcome_type !== "stable_error") return;
-  assert.equal(result.stable_error.case, "theme binding missing or invalid");
-});
+test("execute_ui_render rejects unresolved Surface",async()=>{const s:any=surface();const body={...s};delete body.content_hash;body.resolved_target_context=null;s.resolved_target_context=null;s.content_hash=sha(body);await assert.rejects(()=>handler({ui_render_ref:"render:1",ui_surface_ref:"surface:1",render_input:{ui_surface_artifact:s,theme_binding_artifact:theme(),renderer_provider_ref:"renderer:web",target_profile_ref:"target:web"}}),(e:unknown)=>e instanceof StableRuntimeError&&e.code==="UI_RENDER_TARGET_THEME_INCOMPATIBLE");});
+
+test("execute_ui_render rejects tampered Theme binding",async()=>{const t:any=theme();t.bindings=[];await assert.rejects(()=>handler({ui_render_ref:"render:1",ui_surface_ref:"surface:1",render_input:{ui_surface_artifact:surface(),theme_binding_artifact:t,renderer_provider_ref:"renderer:web",target_profile_ref:"target:web"}}),(e:unknown)=>e instanceof StableRuntimeError&&e.code==="UI_RENDER_THEME_BINDING_MISSING_OR_INVALID");});
