@@ -1,16 +1,16 @@
 {
-  "capability_contract_hash": "sha256:f71396a1b67a96ebf8831d2ddc10b0180771fb830c93beb1fdb6999a6e9ceb0a",
-  "capability_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0110",
-  "capability_ref": "Q.UI.CAPABILITY.UI_RENDER@V0110",
+  "capability_contract_hash": "sha256:78b8182852c8931aa3b7a94f8cc5b00aebf0fb5ad262931b4df92256ed9ad6a3",
+  "capability_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0111",
+  "capability_ref": "Q.UI.CAPABILITY.UI_RENDER@V0111",
   "contracts": [
-    "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0110#/operations/execute_ui_render/request_contract",
-    "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0110#/operations/execute_ui_render/response_contract",
-    "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0110#/stable_errors/execute_ui_render",
-    "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0110#/type_closure/outcome_contracts/call_outcome"
+    "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0111#/operations/execute_ui_render/request_contract",
+    "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0111#/operations/execute_ui_render/response_contract",
+    "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0111#/stable_errors/execute_ui_render",
+    "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0111#/type_closure/outcome_contracts/call_outcome"
   ],
-  "dependencies": ["Q.THEME.CONTRACT.CAPABILITY.THEME_BINDING@V0106","Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0112"],
-  "interfaces": [{"interface_ref":"Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0110#/interfaces/ui_render_execution_invoke","operation_ref":"Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0110#/operations/execute_ui_render","owner_capability_ref":"Q.UI.CAPABILITY.UI_RENDER@V0110","status":"active"}],
-  "operations": [{"handler_path":"src/p1/ui_render/execute_ui_render/handler.ts","interface_refs":["Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0110#/interfaces/ui_render_execution_invoke"],"operation_id":"execute_ui_render","operation_ref":"Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0110#/operations/execute_ui_render","owner_capability_ref":"Q.UI.CAPABILITY.UI_RENDER@V0110","test_path":"tests/p1/ui_render/execute_ui_render/handler.test.ts"}],
-  "stable_errors": ["Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0110#/stable_errors/execute_ui_render"],
+  "dependencies": ["Q.THEME.CONTRACT.CAPABILITY.THEME_BINDING@V0106","Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0113"],
+  "interfaces": [{"interface_ref":"Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0111#/interfaces/ui_render_execution_invoke","operation_ref":"Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0111#/operations/execute_ui_render","owner_capability_ref":"Q.UI.CAPABILITY.UI_RENDER@V0111","status":"active"}],
+  "operations": [{"handler_path":"src/p1/ui_render/execute_ui_render/handler.ts","interface_refs":["Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0111#/interfaces/ui_render_execution_invoke"],"operation_id":"execute_ui_render","operation_ref":"Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0111#/operations/execute_ui_render","owner_capability_ref":"Q.UI.CAPABILITY.UI_RENDER@V0111","test_path":"tests/p1/ui_render/execute_ui_render/handler.test.ts"}],
+  "stable_errors": ["Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0111#/stable_errors/execute_ui_render"],
   "types": []
 }
