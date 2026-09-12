@@ -1,12 +1,96 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { StableRuntimeError } from "../../../../src/p0/runtime_contract.ts";
 import { handler } from "../../../../src/p1/ui_module/resolve_ui_module/handler.ts";
-function typedInput() {
-  const sourceContractRef = "Q.TEST.CONTRACT.CAPABILITY.EXAMPLE@V0100";
-  const requestRef = `${sourceContractRef}#/contracts/create_request`;
-  const responseRef = `${sourceContractRef}#/contracts/create_response`;
-  return {source_capability_ref:"Q.TEST.CAPABILITY.EXAMPLE@V0100",projection_ref:"Q.TEST.UI.MODULE.EXAMPLE@V0100",trace_id:"trace-1",request_id:"req-1",projection_input:{framework_artifact_ref:"Q.APP.PRESENTATION.EXAMPLE@V0100",framework_artifact_hash:`sha256:${"1".repeat(64)}`,capability_presentation_specification:{source_capability_ref:"Q.TEST.CAPABILITY.EXAMPLE@V0100",presentation_requirements:{},presentation_subjects:[{presentation_subject_ref:"subject:example",subject_kind:"RESOURCE",source_semantic_refs:["example_record"]}],operation_presentation_bindings:[{source_operation_ref:`${sourceContractRef}#/operations/create_example`,disposition:"USER_PRESENTED",presentation_subject_ref:"subject:example",placement_intent:"PRIMARY_ACTION",action_scope:"RESOURCE_COLLECTION",visibility_intent:"PRIMARY",exact_action_binding_ref:"action:create-example"}]},ui_module_instance_requirement:{q_ui_contract_ref:"Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0108",source_capability_ref:"Q.TEST.CAPABILITY.EXAMPLE@V0100"},source_capability_contract_ref:sourceContractRef,source_capability_contract_hash:`sha256:${"2".repeat(64)}`,source_capability_semantic_projection:{business_object_ownership:{owned_business_objects:["example_record"]},state_model:{allowed_business_states:["DRAFT","ACTIVE"]},operations:{create_example:{operation_ref:`${sourceContractRef}#/operations/create_example`}},payload_schema_bindings:{create_example:{request_contract_ref:requestRef,response_contract_ref:responseRef}},contracts:{create_request:{contract_ref:requestRef,input_schema:{type:"object",properties:{name:{type:"string"},priority:{enum:["HIGH","LOW"]},count:{type:["integer","null"]},flags:{type:"array"}},required:["name","priority"]}},create_response:{contract_ref:responseRef,runtime_result_schema:{type:"object",properties:{example_ref:{type:"string"},state:{type:"string"},revision:{type:"integer"}},required:["example_ref","state","revision"]}}}}}}};
+
+function projectionInput() {
+  const contractRef = "Q.TEST.CONTRACT.CAPABILITY.EXAMPLE@V0100";
+  const requestRef = `${contractRef}#/contracts/create_request`;
+  const responseRef = `${contractRef}#/contracts/create_response`;
+  const interfaceRef = `${contractRef}#/interfaces/example_create_invoke`;
+  const operationRef = `${contractRef}#/operations/create_example`;
+  return {
+    source_capability_ref: "Q.TEST.CAPABILITY.EXAMPLE@V0100",
+    projection_ref: "Q.TEST.UI.MODULE.EXAMPLE@V0100",
+    projection_input: {
+      source_capability_contract_ref: contractRef,
+      source_capability_contract_hash: `sha256:${"2".repeat(64)}`,
+      source_external_provider_surface_ref: `${contractRef}#/external_provider_surface`,
+      source_external_provider_surface_hash: `sha256:${"3".repeat(64)}`,
+      source_capability_semantic_projection: {
+        operations: {
+          create_example: {
+            operation_ref: operationRef,
+            request_contract_ref: requestRef,
+            response_contract_ref: responseRef,
+          },
+        },
+        interfaces: {
+          example_create_invoke: {
+            interface_ref: interfaceRef,
+            operation_ref: operationRef,
+          },
+        },
+        contracts: {
+          create_request: {
+            contract_ref: requestRef,
+            schema: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                priority: { enum: ["HIGH", "LOW"] },
+                count: { type: ["integer", "null"] },
+              },
+              required: ["name", "priority"],
+            },
+          },
+          create_response: {
+            contract_ref: responseRef,
+            schema: {
+              type: "object",
+              properties: {
+                example_ref: { type: "string" },
+                revision: { type: "integer" },
+              },
+              required: ["example_ref", "revision"],
+            },
+          },
+        },
+        type_closure: {},
+        stable_errors: {},
+        interface_inventory: {},
+        external_provider_surface: { provider_interface_refs: [interfaceRef] },
+        state_model: { allowed_business_states: ["DRAFT", "ACTIVE"] },
+      },
+    },
+  };
 }
-test("deterministic payload-type to UI control mapping preserves order/requiredness",async()=>{const r:any=await handler(typedInput());assert.equal(r.outcome_type,"response");assert.deepEqual(r.ui_module_artifact.action_bindings[0].controls.map((x:any)=>[x.field_name,x.control_kind,x.required]),[["name","TEXT_INPUT",true],["priority","SELECT_INPUT",true],["count","NUMBER_INPUT",false],["flags","COLLECTION_INPUT",false]]);assert.deepEqual(r.ui_module_artifact.state_bindings.map((x:any)=>x.state_name),["DRAFT","ACTIVE"]);});
-test("untyped USER_PRESENTED payload fails closed instead of guessing",async()=>{const x:any=typedInput();x.projection_input.source_capability_semantic_projection.contracts.create_request.input_schema={type:"object",required:["name"],properties:{name:{}}};const r:any=await handler(x);assert.equal(r.outcome_type,"stable_error");assert.equal(r.stable_error.case,"framework input invalid");});
-test("BACKGROUND operation creates no user action control",async()=>{const x:any=typedInput();x.projection_input.capability_presentation_specification.operation_presentation_bindings[0]={source_operation_ref:"Q.TEST.CONTRACT.CAPABILITY.EXAMPLE@V0100#/operations/create_example",disposition:"BACKGROUND",background_reason:"system-maintained"};const r:any=await handler(x);assert.equal(r.outcome_type,"response");assert.equal(r.ui_module_artifact.action_bindings.length,0);});
+
+test("UI Module V0111 deterministically projects exact external provider interfaces", async () => {
+  const result = await handler(projectionInput());
+  const artifact = result.ui_module_artifact as Record<string, any>;
+  assert.equal(artifact.semantic_model.version, "Q_UI_MODULE_SEMANTIC_MODEL_V2");
+  assert.equal(artifact.action_bindings.length, 1);
+  assert.deepEqual(
+    artifact.action_bindings[0].controls.map((x: any) => [x.field_name, x.control_kind, x.required]),
+    [["name", "TEXT_INPUT", true], ["priority", "SELECT_INPUT", true], ["count", "NUMBER_INPUT", false]],
+  );
+  assert.match(artifact.content_hash, /^sha256:[0-9a-f]{64}$/);
+});
+
+test("UI Module V0111 does not expose interfaces absent from exact External Provider Surface", async () => {
+  const input: any = projectionInput();
+  input.projection_input.source_capability_semantic_projection.external_provider_surface = { provider_interface_refs: [] };
+  const result = await handler(input);
+  const artifact = result.ui_module_artifact as Record<string, any>;
+  assert.equal(artifact.action_bindings.length, 0);
+});
+
+test("UI Module V0111 fails closed for ambiguous payload schema", async () => {
+  const input: any = projectionInput();
+  input.projection_input.source_capability_semantic_projection.contracts.create_request.schema.properties.name = {};
+  await assert.rejects(
+    () => handler(input),
+    (error: unknown) => error instanceof StableRuntimeError && error.code === "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS",
+  );
+});
