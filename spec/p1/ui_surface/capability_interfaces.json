@@ -1,5 +1,5 @@
 {
-  "capability_contract_hash": "sha256:70da89ca2ede17feab1ffe697949c3a1d5092f8333c9b69acb65f5687d72c5db",
+  "capability_contract_hash": "sha256:c5a436df705152598afdb7b5fd5ac783ee7f9ed8f460b7019b210e0dc2849623",
   "capability_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0112",
   "interfaces": {
     "ui_surface_creation_invoke": {
