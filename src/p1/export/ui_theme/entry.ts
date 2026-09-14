@@ -1,0 +1,18 @@
+import { create_p1_capability_stage_extension } from "../../business_runtime/stage_extension_contract.ts";
+import { create_client } from "./client.ts";
+import { capability_extraction_metadata } from "./metadata.ts";
+
+export const stage_extension = create_p1_capability_stage_extension({
+  implementation_ref: "Q.UI.CAPABILITY.UI_THEME@V0107",
+  provided_interface_refs: ["Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0107#/interfaces/ui_theme_invoke"],
+});
+
+export const entry = Object.freeze({
+  capability_ref: "Q.UI.CAPABILITY.UI_THEME@V0107",
+  capability_contract_ref: "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0107",
+  metadata_ref: "src/p1/export/ui_theme/metadata.ts#capability_extraction_metadata",
+  client_ref: "src/p1/export/ui_theme/client.ts#create_client",
+  stage_extension,
+  create_client,
+  metadata: capability_extraction_metadata,
+});
