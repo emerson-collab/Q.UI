@@ -1,0 +1,117 @@
+capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_PRODUCER@V0107
+capability_contract_hash: sha256:3b193f269fec979d2c324ac452439d50bfc40c883f8f21dc7e218ca47f2feea7
+runtime_contract_ref: Q.SS.STD.P0.CONTRACT.RUNTIME_CORE@V0134
+stage_contract_ref: Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0179
+fixed_skeleton_mutation_forbidden: true
+extra_operation_file_forbidden_by_default: true
+module_layer_forbidden: true
+direct_handler_export_forbidden: true
+host_artifact_projection:
+  canonicalization: SORTED_RECURSIVE_JSON
+  hash_algorithm: SHA-256
+  ui_module_semantic_model_mode: EXACT_DEEP_COPY
+  ui_module_action_bindings_mode: EXACT_DEEP_COPY_OPAQUE
+  ui_theme_presentation_rules_mode: EXACT_DEEP_COPY_OR_NULL
+  actual_p2_runtime_mount_required_at_production_time: false
+  producer_may_create_or_select_p2_mount_identity: false
+  producer_may_reconstruct_action_binding_semantics: false
+dependency_policy:
+  ui_module_exact_local_dependency_ref: Q.UI.DEPENDENCY.UI_MODULE@V0100
+  ui_theme_exact_local_dependency_ref: Q.UI.DEPENDENCY.UI_THEME@V0100
+  p1_dependency_interface_ref: Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0179#/interfaces/dependency_invoke
+  p2_realization_ref: Q.SS.STD.P2.CONTRACT.CROSS_DOMAIN_REALIZATION@V0124
+  direct_provider_runtime_or_sql_bypass_forbidden: true
+capability_rule_count: 46
+capability_rule_refs:
+- rule_id: UI_PRODUCER.R001
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R002
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R003
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R004
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R005
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R006
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R007
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R008
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R009
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R010
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R011
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R012
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R013
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R014
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R015
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R016
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R017
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R018
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R019
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R020
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R021
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R022
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R023
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R024
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R025
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R026
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R027
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R028
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R029
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R030
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R031
+  rule_version: V0107
+- rule_id: UI_PRODUCER.R032
+  rule_version: V0107
+- rule_id: UI_PRODUCER.R033
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R034
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R035
+  rule_version: V0107
+- rule_id: UI_PRODUCER.R036
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R037
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R038
+  rule_version: V0105
+- rule_id: UI_PRODUCER.R039
+  rule_version: V0107
+- rule_id: UI_PRODUCER.R040
+  rule_version: V0107
+- rule_id: UI_PRODUCER.R041
+  rule_version: V0106
+- rule_id: UI_PRODUCER.R042
+  rule_version: V0106
+- rule_id: UI_PRODUCER.R043
+  rule_version: V0106
+- rule_id: UI_PRODUCER.R044
+  rule_version: V0106
+- rule_id: UI_PRODUCER.R045
+  rule_version: V0106
+- rule_id: UI_PRODUCER.R046
+  rule_version: V0107
