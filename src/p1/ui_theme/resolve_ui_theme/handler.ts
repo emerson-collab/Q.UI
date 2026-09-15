@@ -111,7 +111,7 @@ function clone_json_value(
   const prototype = Object.getPrototypeOf(value);
   if (prototype !== Object.prototype && prototype !== null) schema_violation();
 
-  const output = Object.create(null) as Record<string, JsonValue>;
+  const output: Record<string, JsonValue> = {};
   const descriptors = Object.getOwnPropertyDescriptors(value);
   for (const key of Object.keys(descriptors)) {
     const descriptor = descriptors[key]!;
@@ -153,10 +153,10 @@ function validate_theme_material(value: JsonValue): UIThemeMaterial {
     schema_violation();
   }
 
-  const theme_ref = value.theme_ref;
-  const theme_version = value.theme_version;
-  const presentation_rules = value.presentation_rules;
-  const content_hash = value.content_hash;
+  const theme_ref = value.theme_ref!;
+  const theme_version = value.theme_version!;
+  const presentation_rules = value.presentation_rules!;
+  const content_hash = value.content_hash!;
 
   if (
     typeof theme_ref !== "string"
@@ -191,7 +191,7 @@ function validate_theme_selector(value: JsonValue): UIThemeSelector {
     schema_violation();
   }
 
-  const theme_material = validate_theme_material(value.theme_material);
+  const theme_material = validate_theme_material(value.theme_material!);
   const context_constraints = value.context_constraints;
   if (context_constraints !== undefined && !is_json_object(context_constraints)) {
     schema_violation();
@@ -215,7 +215,7 @@ function validate_request(input: unknown): ResolveUIThemeRequest {
     schema_violation();
   }
 
-  const theme_selector = validate_theme_selector(value.theme_selector);
+  const theme_selector = validate_theme_selector(value.theme_selector!);
   const ui_context = value.ui_context;
   const ui_module_artifact_ref = value.ui_module_artifact_ref;
 
@@ -253,9 +253,10 @@ function canonical_json(value: JsonValue): string {
     return `[${value.map((item) => canonical_json(item)).join(",")}]`;
   }
 
-  const keys = Object.keys(value).sort();
+  const objectValue = value as JsonObject;
+  const keys = Object.keys(objectValue).sort();
   return `{${keys
-    .map((key) => `${JSON.stringify(key)}:${canonical_json(value[key]!)}`)
+    .map((key) => `${JSON.stringify(key)}:${canonical_json(objectValue[key]!)}`)
     .join(",")}}`;
 }
 
