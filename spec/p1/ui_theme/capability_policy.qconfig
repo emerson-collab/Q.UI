@@ -1,0 +1,17 @@
+{
+  "stable_errors": {
+    "resolve_ui_theme": {
+      "silent_fallback_forbidden": true,
+      "stable_error_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/stable_error_contract"
+    }
+  },
+  "dependencies": {
+    "cross_domain_dependency_realization_owned_by_p2": true,
+    "dependency_creation_by_p2_forbidden": true,
+    "external_dependencies": {},
+    "external_theme_provider_dependency_forbidden": true,
+    "implicit_dependency_forbidden": true,
+    "local_dependencies": [],
+    "p2_is_downstream_publication_mount_owner_not_p1_formal_dependency": true
+  }
+}
