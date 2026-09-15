@@ -1,0 +1,17 @@
+capability_ref: Q.UI.CAPABILITY.UI_THEME@V0109
+capability_id: ui_theme
+capability_version: V0109
+capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109
+capability_contract_hash: sha256:590e487297c89b1b91a838ac97eae4d309e80db9cc1502e7bbfba55f5560536f
+stage_contract_ref: Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0179
+stage_contract_hash: sha256:e1cba02867d8defe49ab7dd8330370789c5ea1bbaf0d618c7795b86e9455bff0
+runtime_contract_ref: Q.SS.STD.P0.CONTRACT.RUNTIME_CORE@V0134
+runtime_contract_hash: sha256:292c0919b471bfa1f725fae2c836571cbffe2bdb0900a70d6c0bbb9e4abb2340
+extraction_mode: PUBLICATION_ELIGIBLE
+external_provider_surface_ref: Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/external_provider_surface
+external_provider_surface_hash: null
+external_provider_surface_hash_resolution: EXTERNAL_SURFACE_AND_CLOSURE_BINDING_AFTER_IMMUTABLE_SOURCE_FINALIZATION
+public_entry_ref: src/p1/export/ui_theme/entry.ts#entry
+metadata_ref: src/p1/export/ui_theme/metadata.ts#capability_extraction_metadata
+direct_handler_export_forbidden: true
+p1_static_extraction_only: true

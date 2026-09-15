@@ -1,0 +1,16 @@
+capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109
+capability_contract_hash: sha256:590e487297c89b1b91a838ac97eae4d309e80db9cc1502e7bbfba55f5560536f
+capability:
+  capability_ref: Q.UI.CAPABILITY.UI_THEME@V0109
+  capability_id: ui_theme
+  operation_refs:
+    - Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/operations/resolve_ui_theme
+operations:
+  resolve_ui_theme:
+    operation_ref: Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/operations/resolve_ui_theme
+    operation_id: resolve_ui_theme
+    owner_capability_ref: Q.UI.CAPABILITY.UI_THEME@V0109
+    handler_ref: src/p1/ui_theme/resolve_ui_theme/handler.ts#handler
+    test_ref: tests/p1/ui_theme/resolve_ui_theme/handler.test.ts
+    interface_refs:
+      - Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/interfaces/ui_theme_invoke
