@@ -2,10 +2,10 @@ import { createHash } from "node:crypto";
 import { StableRuntimeError, deep_freeze } from "../../../p0/runtime_contract.ts";
 
 export type JsonObject = Readonly<Record<string, unknown>>;
-export const CAPABILITY_CONTRACT_REF = "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0113" as const;
+export const CAPABILITY_CONTRACT_REF = "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0114" as const;
 export const OPERATION_REF = `${CAPABILITY_CONTRACT_REF}#/operations/create_ui_surface` as const;
 const SHA256=/^sha256:[0-9a-f]{64}$/;
-const APP_CONTRACT="Q.APP.CONTRACT.CAPABILITY.APPLICATION_PRESENTATION@V0109" as const;
+const APP_CONTRACT="Q.APP.CONTRACT.CAPABILITY.APPLICATION_PRESENTATION@V0110" as const;
 const APP_INTERFACE=`${APP_CONTRACT}#/interfaces/application_presentation_invoke` as const;
 const APP_OPERATION=`${APP_CONTRACT}#/operations/resolve_application_presentation` as const;
 const PLATFORM_CONTRACT="Q.PLATFORM.CONTRACT.CAPABILITY.PLATFORM_WORKBENCH@V0107" as const;
