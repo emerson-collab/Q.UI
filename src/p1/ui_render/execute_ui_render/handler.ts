@@ -2,10 +2,10 @@ import { createHash } from "node:crypto";
 import { StableRuntimeError, deep_freeze } from "../../../p0/runtime_contract.ts";
 
 export type JsonObject = Readonly<Record<string, unknown>>;
-export const CAPABILITY_CONTRACT_REF = "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0111" as const;
+export const CAPABILITY_CONTRACT_REF = "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0112" as const;
 export const OPERATION_REF = `${CAPABILITY_CONTRACT_REF}#/operations/execute_ui_render` as const;
-export const UI_SURFACE_CONTRACT_REF = "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0113" as const;
-export const THEME_BINDING_CONTRACT_REF = "Q.THEME.CONTRACT.CAPABILITY.THEME_BINDING@V0106" as const;
+export const UI_SURFACE_CONTRACT_REF = "Q.UI.CONTRACT.CAPABILITY.UI_SURFACE@V0114" as const;
+export const THEME_BINDING_CONTRACT_REF = "Q.THEME.CONTRACT.CAPABILITY.THEME_BINDING@V0107" as const;
 const SHA256=/^sha256:[0-9a-f]{64}$/;
 function isObject(v:unknown):v is Record<string,unknown>{return v!==null&&typeof v==="object"&&!Array.isArray(v)}
 function obj(v:unknown,code:string,field:string):Record<string,unknown>{if(!isObject(v))throw new StableRuntimeError(code,`${field} must be object`);return v;}
