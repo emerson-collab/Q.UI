@@ -1,15 +1,15 @@
-capability_ref: Q.UI.CAPABILITY.UI_HOST@V0109
-capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0109
-capability_contract_hash: sha256:6ff5e3055b970327cc53b3dc2188f4eec34a4efdb358d795b392833e1765f443
+capability_ref: Q.UI.CAPABILITY.UI_HOST@V0110
+capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0110
+capability_contract_hash: sha256:9627b8db2172aa8f8d4c1ec8e02fbe3d55d1685b771ac80d279f078447bb85e5
 capability_id: ui_host
-capability_version: V0109
+capability_version: V0110
 mode: PUBLICATION_ELIGIBLE
 public_operation_refs:
-- Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0109#/operations/activate_ui_host
-- Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0109#/operations/deactivate_ui_host
+- Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0110#/operations/activate_ui_host
+- Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0110#/operations/deactivate_ui_host
 public_interface_refs:
-- Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0109#/interfaces/ui_host_activation_invoke
-- Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0109#/interfaces/ui_host_deactivation_invoke
+- Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0110#/interfaces/ui_host_activation_invoke
+- Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0110#/interfaces/ui_host_deactivation_invoke
 runtime_contract_ref: Q.SS.STD.P0.CONTRACT.RUNTIME_CORE@V0134
 public_entry_ref: src/p1/export/ui_host/entry.ts#entry
 metadata_ref: src/p1/export/ui_host/metadata.ts#capability_extraction_metadata
@@ -19,8 +19,7 @@ p2_publication_and_mount_realization_owner: Q.SS.STD.P2.CONTRACT.CROSS_DOMAIN_RE
 dependencies:
   ui_render:
     classification: PROVIDER_INTERNAL_DEPENDENCY
-    provider_capability_ref: Q.UI.CAPABILITY.UI_RENDER@V0109
-    provider_capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_RENDER@${CURRENT}
+    provider_capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0112
     cross_domain_realization_required: false
     exact_target_ref_and_hash_resolved_before_use: true
     direct_handler_import_forbidden: true
@@ -33,8 +32,8 @@ dependencies:
     provider_capability_contract_ref: Q.WORKFLOW.CONTRACT.CAPABILITY.WORKFLOW@${CURRENT}
     exact_target_ref_and_hash_resolved_before_call: true
     dependency_ref: Q.UI.DEPENDENCY.Q_WORKFLOW@V0100
-    exact_owner_capability_ref: Q.UI.CAPABILITY.UI_HOST@V0109
-    exact_receiving_operation_ref: Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0109#/operations/activate_ui_host
+    exact_owner_capability_ref: Q.UI.CAPABILITY.UI_HOST@V0110
+    exact_receiving_operation_ref: Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0110#/operations/activate_ui_host
     exact_local_dependency_ref: Q.UI.DEPENDENCY.Q_WORKFLOW@V0100
     p1_dependency_interface_ref: Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0179#/interfaces/dependency_invoke
     p2_realization_ref: Q.SS.STD.P2.CONTRACT.CROSS_DOMAIN_REALIZATION@V0123
@@ -47,8 +46,8 @@ dependencies:
     exact_target_ref_and_hash_resolved_before_use: true
     connectivity_scope: P2_DURABLE_MOUNT_ONLY
     dependency_ref: Q.UI.DEPENDENCY.Q_PROVIDER_ROUTING@V0100
-    exact_owner_capability_ref: Q.UI.CAPABILITY.UI_HOST@V0109
-    exact_receiving_operation_ref: Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0109#/operations/activate_ui_host
+    exact_owner_capability_ref: Q.UI.CAPABILITY.UI_HOST@V0110
+    exact_receiving_operation_ref: Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0110#/operations/activate_ui_host
     exact_local_dependency_ref: Q.UI.DEPENDENCY.Q_PROVIDER_ROUTING@V0100
     p1_dependency_interface_ref: Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0179#/interfaces/dependency_invoke
     p2_realization_ref: Q.SS.STD.P2.CONTRACT.CROSS_DOMAIN_REALIZATION@V0123
