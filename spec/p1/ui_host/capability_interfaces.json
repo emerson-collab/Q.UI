@@ -13,9 +13,28 @@
       "response_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0110#/operations/activate_ui_host/response_contract",
       "stable_error_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0110#/stable_errors/activate_ui_host",
       "outcome_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0110#/type_closure/outcome_contracts/call_outcome",
-      "path": ["capability_id","operation_id","trace_id","request_id"],
-      "static_mount": ["operation_contract","dependency_contract_ref","dependency_client_ref","dependency_binding_ref"],
-      "dynamic_mount": ["input","runtime_context","dependency_request","outcome_type","runtime_result","stable_error","execution_receipt","evidence_ref"]
+      "path": [
+        "capability_id",
+        "operation_id",
+        "trace_id",
+        "request_id"
+      ],
+      "static_mount": [
+        "operation_contract",
+        "dependency_contract_ref",
+        "dependency_client_ref",
+        "dependency_binding_ref"
+      ],
+      "dynamic_mount": [
+        "input",
+        "runtime_context",
+        "dependency_request",
+        "outcome_type",
+        "runtime_result",
+        "stable_error",
+        "execution_receipt",
+        "evidence_ref"
+      ]
     },
     "ui_host_deactivation_invoke": {
       "interface_ref": "Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0110#/interfaces/ui_host_deactivation_invoke",
@@ -28,9 +47,24 @@
       "response_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0110#/operations/deactivate_ui_host/response_contract",
       "stable_error_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0110#/stable_errors/deactivate_ui_host",
       "outcome_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_HOST@V0110#/type_closure/outcome_contracts/call_outcome",
-      "path": ["capability_id","operation_id","trace_id","request_id"],
-      "static_mount": ["operation_contract"],
-      "dynamic_mount": ["input","runtime_context","outcome_type","runtime_result","stable_error","execution_receipt","evidence_ref"]
+      "path": [
+        "capability_id",
+        "operation_id",
+        "trace_id",
+        "request_id"
+      ],
+      "static_mount": [
+        "operation_contract"
+      ],
+      "dynamic_mount": [
+        "input",
+        "runtime_context",
+        "outcome_type",
+        "runtime_result",
+        "stable_error",
+        "execution_receipt",
+        "evidence_ref"
+      ]
     }
   }
 }
