@@ -66,6 +66,15 @@ test("produce_app rejects an incomplete theme pair without inventing compatibili
     }),
     (error: any) => error?.code === "UI_PRODUCER_THEME_INCOMPATIBLE",
   );
+
+  await assert.rejects(
+    () => handler({
+      ui_module_artifact_ref: "ui-module:app:001",
+      ui_module_artifact: moduleArtifact,
+      ui_theme_artifact: { theme_ref: "theme:001", presentation_rules: {} },
+    }),
+    (error: any) => error?.code === "UI_PRODUCER_THEME_INCOMPATIBLE",
+  );
 });
 
 test("produce_app rejects undeclared request fields", async () => {
@@ -77,4 +86,45 @@ test("produce_app rejects undeclared request fields", async () => {
     }),
     (error: any) => error?.code === "UI_PRODUCER_BUSINESS_SEMANTIC_INFERENCE_FORBIDDEN",
   );
+});
+
+test("produce_app does not allow the caller to override Host Artifact identity or content hash", async () => {
+  for (const forbidden of [
+    { host_artifact_ref: "caller-owned" },
+    { content_hash: `sha256:${"0".repeat(64)}` },
+  ]) {
+    await assert.rejects(
+      () => handler({
+        ui_module_artifact_ref: "ui-module:app:001",
+        ui_module_artifact: moduleArtifact,
+        ...forbidden,
+      }),
+      (error: any) => error?.code === "UI_PRODUCER_BUSINESS_SEMANTIC_INFERENCE_FORBIDDEN",
+    );
+  }
+});
+
+test("produce_app deep-copies and freezes governed upstream material", async () => {
+  const mutableModule = {
+    ui_module_ref: "ui-module:app:mutable",
+    semantic_model: { screen: { label: "before" } },
+    action_bindings: [{ lineage: { source: "opaque-before" } }],
+    state_bindings: [{ state: "before" }],
+    evidence_views: [{ evidence: "before" }],
+  };
+
+  const result = await handler({
+    ui_module_artifact_ref: "ui-module:app:mutable",
+    ui_module_artifact: mutableModule,
+  }) as any;
+
+  mutableModule.semantic_model.screen.label = "after";
+  mutableModule.action_bindings[0]!.lineage.source = "opaque-after";
+  mutableModule.state_bindings[0]!.state = "after";
+
+  assert.equal(result.host_artifact.ui_structure.semantic_model.screen.label, "before");
+  assert.equal(result.host_artifact.action_bindings[0].lineage.source, "opaque-before");
+  assert.equal(result.host_artifact.runtime_requirements.state_bindings[0].state, "before");
+  assert.equal(Object.isFrozen(result.host_artifact), true);
+  assert.equal(Object.isFrozen(result.host_artifact.action_bindings[0].lineage), true);
 });

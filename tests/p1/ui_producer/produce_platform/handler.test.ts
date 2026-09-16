@@ -46,3 +46,52 @@ test("produce_platform requires exact theme identity when the theme pair is pres
     (error: any) => error?.code === "UI_PRODUCER_THEME_INCOMPATIBLE",
   );
 });
+
+test("produce_platform canonicalization ignores object key order but preserves array order", async () => {
+  const first = await handler({
+    ui_module_artifact_ref: "ui-module:platform:001",
+    ui_module_artifact: moduleArtifact,
+    host_target: { z: 2, a: 1 },
+    platform_context: { z: 2, a: 1 },
+  }) as any;
+  const second = await handler({
+    platform_context: { a: 1, z: 2 },
+    host_target: { a: 1, z: 2 },
+    ui_module_artifact: moduleArtifact,
+    ui_module_artifact_ref: "ui-module:platform:001",
+  }) as any;
+
+  assert.equal(first.host_artifact.content_hash, second.host_artifact.content_hash);
+
+  const orderedA = {
+    ...moduleArtifact,
+    action_bindings: [{ id: "first" }, { id: "second" }],
+  };
+  const orderedB = {
+    ...moduleArtifact,
+    action_bindings: [{ id: "second" }, { id: "first" }],
+  };
+  const a = await handler({
+    ui_module_artifact_ref: "ui-module:platform:001",
+    ui_module_artifact: orderedA,
+  }) as any;
+  const b = await handler({
+    ui_module_artifact_ref: "ui-module:platform:001",
+    ui_module_artifact: orderedB,
+  }) as any;
+
+  assert.notEqual(a.host_artifact.content_hash, b.host_artifact.content_hash);
+});
+
+test("produce_platform keeps theme presentation separate from module business semantics", async () => {
+  const result = await handler({
+    ui_module_artifact_ref: "ui-module:platform:001",
+    ui_module_artifact: moduleArtifact,
+    ui_theme_artifact_ref: "ui-theme:001",
+    ui_theme_artifact: themeArtifact,
+  }) as any;
+
+  assert.deepEqual(result.host_artifact.ui_structure.semantic_model, { platform: true });
+  assert.deepEqual(result.host_artifact.ui_structure.theme_presentation_rules, themeArtifact.presentation_rules);
+  assert.equal("density" in result.host_artifact.ui_structure.semantic_model, false);
+});
