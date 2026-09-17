@@ -9,6 +9,8 @@ export const UI_SURFACE_CONTRACT_HASH = "sha256:3016cb8cd975d0441a13fc0837e351e9
 export const THEME_BINDING_CONTRACT_REF = "Q.THEME.CONTRACT.CAPABILITY.THEME_BINDING@V0107" as const;
 export const THEME_BINDING_CONTRACT_HASH = "sha256:696835c7ba463ab2f7094696f76292fb178c677242d03275f6e3f6d78c637090" as const;
 const SHA256 = /^sha256:[0-9a-f]{64}$/;
+const THEME_ARTIFACT_FIELDS = new Set(["effective_theme_ref","bindings","content_hash"]);
+const SURFACE_REQUIRED_ARRAY_FIELDS = ["ui_module_refs","regions","slots","navigation_projection","interaction_bindings"] as const;
 
 function isObject(v: unknown): v is Record<string, unknown> { return v !== null && typeof v === "object" && !Array.isArray(v); }
 function obj(v: unknown, code: string, field: string): Record<string, unknown> { if (!isObject(v)) throw new StableRuntimeError(code, `${field} must be object`); return v; }
@@ -17,9 +19,26 @@ function stable(v: unknown): unknown { if (Array.isArray(v)) return Object.freez
 function canonical(v: unknown): string { return JSON.stringify(stable(v)); }
 function sha(v: unknown): string { return `sha256:${createHash("sha256").update(canonical(v), "utf8").digest("hex")}`; }
 function verifyHashBoundArtifact(value: unknown, code: string, field: string): Record<string, unknown> { const artifact = obj(value, code, field); const contentHash = str(artifact.content_hash, code, `${field}.content_hash`); if (!SHA256.test(contentHash)) throw new StableRuntimeError(code, `${field}.content_hash must be sha256`); const body: Record<string, unknown> = {}; for (const [k, v] of Object.entries(artifact)) if (k !== "content_hash") body[k] = v; if (sha(body) !== contentHash) throw new StableRuntimeError(code, `${field}.content_hash mismatch`); return artifact; }
-function stableError(trace_id: string, request_id: string, semantic_case: "theme binding missing or invalid" | "renderer unavailable" | "target/theme incompatibility") {
-  const stable_error = deep_freeze({ case: semantic_case });
-  return deep_freeze({ outcome_type: "stable_error" as const, stable_error, evidence_ref: sha({ operation_ref: OPERATION_REF, stable_error, trace_id, request_id }), trace_id, request_id });
+function stableError(trace_id: string, request_id: string, semantic_case: "theme binding missing or invalid" | "renderer unavailable" | "target/theme incompatibility") { const stable_error = deep_freeze({ case: semantic_case }); return deep_freeze({ outcome_type: "stable_error" as const, stable_error, evidence_ref: sha({ operation_ref: OPERATION_REF, stable_error, trace_id, request_id }), trace_id, request_id }); }
+function validSurfaceArtifact(surface: Record<string, unknown>, expectedRef: string): boolean {
+  if (surface.ui_surface_ref !== expectedRef || !isObject(surface.resolved_target_context)) return false;
+  for (const key of SURFACE_REQUIRED_ARRAY_FIELDS) if (!Array.isArray(surface[key])) return false;
+  const refs = surface.ui_module_refs as unknown[];
+  if (refs.length === 0 || refs.some((ref) => typeof ref !== "string" || ref.length === 0) || new Set(refs).size !== refs.length) return false;
+  return true;
+}
+function validThemeArtifact(theme: Record<string, unknown>): boolean {
+  const keys = Object.keys(theme);
+  if (keys.length !== THEME_ARTIFACT_FIELDS.size || keys.some((key) => !THEME_ARTIFACT_FIELDS.has(key))) return false;
+  if (typeof theme.effective_theme_ref !== "string" || theme.effective_theme_ref.length === 0 || !Array.isArray(theme.bindings) || theme.bindings.length === 0) return false;
+  for (const binding of theme.bindings) {
+    if (!isObject(binding)) return false;
+    if (typeof binding.framework_role_ref !== "string" || binding.framework_role_ref.length === 0) return false;
+    if (typeof binding.theme_ref !== "string" || binding.theme_ref.length === 0 || binding.theme_ref !== theme.effective_theme_ref) return false;
+    if (binding.appearance_variant_ref !== null && (typeof binding.appearance_variant_ref !== "string" || binding.appearance_variant_ref.length === 0)) return false;
+    if (typeof binding.visual_profile_ref !== "string" || binding.visual_profile_ref.length === 0 || !isObject(binding.visual_profile)) return false;
+  }
+  return true;
 }
 
 export async function handler(input: unknown): Promise<Readonly<Record<string, unknown>>> {
@@ -31,17 +50,17 @@ export async function handler(input: unknown): Promise<Readonly<Record<string, u
   const ui_surface_ref = str(request.ui_surface_ref, "UI_RENDER_TARGET_THEME_INCOMPATIBLE", "ui_surface_ref");
   let renderInput: Record<string, unknown>;
   try { renderInput = obj(request.render_input, "UI_RENDER_TARGET_THEME_INCOMPATIBLE", "render_input"); } catch { return stableError(trace_id, request_id, "target/theme incompatibility"); }
-  if (Object.keys(renderInput).some((k) => !["ui_surface_artifact", "theme_binding_artifact", "renderer_provider_ref", "target_profile_ref"].includes(k))) return stableError(trace_id, request_id, "target/theme incompatibility");
+  const inputKeys = Object.keys(renderInput);
+  if (inputKeys.length !== 4 || inputKeys.some((k) => !["ui_surface_artifact", "theme_binding_artifact", "renderer_provider_ref", "target_profile_ref"].includes(k))) return stableError(trace_id, request_id, "target/theme incompatibility");
 
   let surface: Record<string, unknown>;
   try { surface = verifyHashBoundArtifact(renderInput.ui_surface_artifact, "UI_RENDER_TARGET_THEME_INCOMPATIBLE", "render_input.ui_surface_artifact"); } catch { return stableError(trace_id, request_id, "target/theme incompatibility"); }
-  if (surface.ui_surface_ref !== ui_surface_ref || !isObject(surface.resolved_target_context)) return stableError(trace_id, request_id, "target/theme incompatibility");
+  if (!validSurfaceArtifact(surface, ui_surface_ref)) return stableError(trace_id, request_id, "target/theme incompatibility");
 
   let theme: Record<string, unknown>;
   try { theme = verifyHashBoundArtifact(renderInput.theme_binding_artifact, "UI_RENDER_THEME_BINDING_MISSING_OR_INVALID", "render_input.theme_binding_artifact"); } catch { return stableError(trace_id, request_id, "theme binding missing or invalid"); }
-  let theme_ref: string;
-  try { theme_ref = str(theme.effective_theme_ref, "UI_RENDER_THEME_BINDING_MISSING_OR_INVALID", "theme_binding_artifact.effective_theme_ref"); } catch { return stableError(trace_id, request_id, "theme binding missing or invalid"); }
-  if (!Array.isArray(theme.bindings) || theme.bindings.length === 0) return stableError(trace_id, request_id, "theme binding missing or invalid");
+  if (!validThemeArtifact(theme)) return stableError(trace_id, request_id, "theme binding missing or invalid");
+  const theme_ref = theme.effective_theme_ref as string;
 
   let renderer_provider_ref: string;
   try { renderer_provider_ref = str(renderInput.renderer_provider_ref, "UI_RENDER_RENDERER_UNAVAILABLE", "renderer_provider_ref"); } catch { return stableError(trace_id, request_id, "renderer unavailable"); }
