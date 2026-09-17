@@ -1,33 +1,8 @@
 export type JsonObject = Readonly<Record<string, unknown>>;
-
-export interface UiRenderArtifact {
-  readonly render_artifact_ref: string;
-  readonly ui_surface_ref: string;
-  readonly ui_surface_hash: string;
-  readonly renderer_provider_ref: string;
-  readonly theme_ref: string;
-  readonly theme_binding_hash: string;
-  readonly target_profile_ref: string;
-  readonly content_hash: string;
-}
-export interface UiSurfaceArtifact extends JsonObject {
-  readonly ui_surface_ref: string;
-  readonly resolved_target_context: JsonObject;
-  readonly content_hash: string;
-}
-export interface ThemeBindingArtifact extends JsonObject {
-  readonly effective_theme_ref: string;
-  readonly bindings: readonly JsonObject[];
-  readonly content_hash: string;
-}
-export interface ExecuteUiRenderRequest {
-  readonly ui_render_ref: string;
-  readonly ui_surface_ref: string;
-  readonly render_input: Readonly<{
-    ui_surface_artifact: UiSurfaceArtifact;
-    theme_binding_artifact: ThemeBindingArtifact;
-    renderer_provider_ref: string;
-    target_profile_ref: string;
-  }>;
-}
-export interface ExecuteUiRenderResponse { readonly ui_render_artifact: UiRenderArtifact; }
+export interface UiRenderArtifact { readonly render_artifact_ref:string; readonly ui_surface_ref:string; readonly ui_surface_hash:string; readonly renderer_provider_ref:string; readonly theme_ref:string; readonly theme_binding_hash:string; readonly target_profile_ref:string; readonly content_hash:string; }
+export interface UiSurfaceArtifact extends JsonObject { readonly ui_surface_ref:string; readonly resolved_target_context:JsonObject; readonly content_hash:string; }
+export interface ThemeBindingArtifact extends JsonObject { readonly effective_theme_ref:string; readonly bindings:readonly JsonObject[]; readonly content_hash:string; }
+export interface ExecuteUiRenderRequest { readonly ui_render_ref:string; readonly ui_surface_ref:string; readonly render_input:Readonly<{ui_surface_artifact:UiSurfaceArtifact;theme_binding_artifact:ThemeBindingArtifact;renderer_provider_ref:string;target_profile_ref:string}>; readonly trace_id:string; readonly request_id:string; }
+export interface ExecuteUiRenderResponse { readonly outcome_type:"response"; readonly ui_render_artifact:UiRenderArtifact; readonly evidence_ref:string; readonly receipt_ref:string; readonly trace_id:string; readonly request_id:string; }
+export interface ExecuteUiRenderStableError { readonly outcome_type:"stable_error"; readonly stable_error:Readonly<{case:"theme binding missing or invalid"|"renderer unavailable"|"target/theme incompatibility"}>; readonly evidence_ref:string; readonly trace_id:string; readonly request_id:string; }
+export type ExecuteUiRenderOutcome=ExecuteUiRenderResponse|ExecuteUiRenderStableError;
