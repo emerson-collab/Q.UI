@@ -12,17 +12,21 @@ export interface UiModuleArtifact {
   readonly ui_module_ref: string;
   readonly source_capability_ref: string;
   readonly projection_ref: string;
-  readonly semantic_model: unknown;
-  readonly action_bindings: readonly unknown[];
-  readonly state_bindings: readonly unknown[];
-  readonly evidence_views: readonly unknown[];
+  readonly source_lineage: JsonObject;
+  readonly source_semantic_snapshot: JsonObject;
+  readonly semantic_model: JsonObject;
+  readonly action_bindings: readonly JsonObject[];
+  readonly state_bindings: readonly JsonObject[];
+  readonly permission_bindings: readonly JsonObject[];
+  readonly evidence_views: readonly JsonObject[];
+  readonly logic_projection: JsonObject;
   readonly content_hash: string;
 }
 
 export interface ResolveUiModuleRequest {
   readonly source_capability_ref: string;
   readonly projection_ref: string;
-  readonly projection_input: unknown;
+  readonly projection_input: JsonObject;
   readonly trace_id: string;
   readonly request_id: string;
 }

@@ -1,17 +1,17 @@
 {
-  "capability_contract_hash": "sha256:fb48c676b347581c60237b041b1f7f8a42fd054e9da823d223f8f48419e743d4",
-  "capability_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0111",
+  "capability_contract_hash": "sha256:f140c539648338fe408fe60aa7e84e8e41bcae8583aa9150f7a5ba3e6a222b01",
+  "capability_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117",
   "interfaces": {
     "ui_module_resolution_invoke": {
-      "interface_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0111#/interfaces/ui_module_resolution_invoke",
-      "operation_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0111#/operations/resolve_ui_module",
+      "interface_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/interfaces/ui_module_resolution_invoke",
+      "operation_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/operations/resolve_ui_module",
       "surface": "CALL",
       "kind_code": "M1",
       "kind": "CALL_INVOKE",
       "method_ref": "resolve_ui_module",
-      "request_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0111#/contracts/resolve_ui_module_request_contract",
-      "response_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0111#/contracts/resolve_ui_module_response_contract",
-      "stable_error_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0111#/stable_error_contract",
+      "request_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/contracts/resolve_ui_module_request_contract",
+      "response_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/contracts/resolve_ui_module_response_contract",
+      "stable_error_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/stable_errors/resolve_ui_module",
       "outcome_contract_ref": "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0179#/outcome_contracts/call_outcome",
       "path": [
         "capability_id",
