@@ -371,6 +371,181 @@ function assertReferenceCarrierTypeCompatible(
   }
 }
 
+
+const UNSUPPORTED_TEMPLATE_ASSERTION_KEYWORDS = Object.freeze([
+  "allOf", "anyOf", "oneOf", "not", "if", "then", "else",
+  "dependentRequired", "dependentSchemas", "propertyNames", "patternProperties",
+  "unevaluatedProperties", "unevaluatedItems", "contains", "minContains", "maxContains",
+  "prefixItems", "multipleOf",
+] as const);
+
+function jsonValueKind(value: unknown): string {
+  if (value === null) return "null";
+  if (Array.isArray(value)) return "array";
+  if (typeof value === "number" && Number.isInteger(value)) return "integer";
+  return typeof value;
+}
+
+function jsonEqual(left: unknown, right: unknown): boolean {
+  return JSON.stringify(canonicalize(left)) === JSON.stringify(canonicalize(right));
+}
+
+function assertTemplateConformsToSchema(
+  value: unknown,
+  schema: Record<string, unknown>,
+  source: Record<string, unknown>,
+  sourceContractRef: string,
+  field: string,
+): void {
+  const shape = ownerLocalSchemaShape(
+    schema,
+    source,
+    sourceContractRef,
+    "UI_MODULE_REFERENCE_BINDING_INVALID",
+    field,
+  );
+
+  for (const keyword of UNSUPPORTED_TEMPLATE_ASSERTION_KEYWORDS) {
+    if (shape[keyword] !== undefined) {
+      fail(
+        "UI_MODULE_REFERENCE_BINDING_INVALID",
+        `${field} uses unsupported JSON Schema assertion keyword ${keyword}; exact template conformance cannot be proven`,
+      );
+    }
+  }
+
+  if (shape.const !== undefined && !jsonEqual(value, shape.const)) {
+    fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} does not satisfy const`);
+  }
+  if (shape.enum !== undefined) {
+    const values = arrayValue(shape.enum, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.enum`);
+    if (!values.some((candidate) => jsonEqual(value, candidate))) {
+      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} does not satisfy enum`);
+    }
+  }
+
+  const declaredType = shape.type;
+  if (declaredType !== undefined) {
+    const allowed = (Array.isArray(declaredType) ? declaredType : [declaredType]).map((item, index) =>
+      stringValue(item, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.type[${index}]`)
+    );
+    const actual = jsonValueKind(value);
+    const matches = allowed.some((type) => (
+      type === actual || (type === "number" && actual === "integer")
+    ));
+    if (!matches) {
+      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} has JSON kind ${actual}, expected ${allowed.join("|")}`);
+    }
+  }
+
+  if (typeof value === "string") {
+    if (shape.minLength !== undefined) {
+      const minLength = Number(shape.minLength);
+      if (!Number.isInteger(minLength) || minLength < 0 || Array.from(value).length < minLength) {
+        fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates minLength`);
+      }
+    }
+    if (shape.maxLength !== undefined) {
+      const maxLength = Number(shape.maxLength);
+      if (!Number.isInteger(maxLength) || maxLength < 0 || Array.from(value).length > maxLength) {
+        fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates maxLength`);
+      }
+    }
+    if (shape.pattern !== undefined) {
+      const pattern = stringValue(shape.pattern, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.pattern`);
+      let expression: RegExp;
+      try {
+        expression = new RegExp(pattern, "u");
+      } catch {
+        fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.pattern is invalid`);
+      }
+      if (!expression.test(value)) fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates pattern`);
+    }
+  }
+
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} must be finite JSON number`);
+    if (shape.minimum !== undefined && value < Number(shape.minimum)) {
+      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates minimum`);
+    }
+    if (shape.maximum !== undefined && value > Number(shape.maximum)) {
+      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates maximum`);
+    }
+    if (shape.exclusiveMinimum !== undefined && value <= Number(shape.exclusiveMinimum)) {
+      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates exclusiveMinimum`);
+    }
+    if (shape.exclusiveMaximum !== undefined && value >= Number(shape.exclusiveMaximum)) {
+      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates exclusiveMaximum`);
+    }
+  }
+
+  if (Array.isArray(value)) {
+    if (shape.minItems !== undefined && value.length < Number(shape.minItems)) {
+      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates minItems`);
+    }
+    if (shape.maxItems !== undefined && value.length > Number(shape.maxItems)) {
+      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates maxItems`);
+    }
+    if (shape.uniqueItems === true) {
+      for (let i = 0; i < value.length; i += 1) {
+        if (value.slice(0, i).some((item) => jsonEqual(item, value[i]))) {
+          fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates uniqueItems`);
+        }
+      }
+    }
+    if (shape.items !== undefined) {
+      const itemSchema = objectValue(shape.items, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.items`);
+      value.forEach((item, index) =>
+        assertTemplateConformsToSchema(item, itemSchema, source, sourceContractRef, `${field}[${index}]`)
+      );
+    }
+  }
+
+  if (isObject(value)) {
+    const properties = shape.properties === undefined
+      ? {}
+      : objectValue(shape.properties, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.properties`);
+    const required = shape.required === undefined
+      ? []
+      : stringArray(shape.required, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.required`);
+    for (const key of required) {
+      if (!(key in value)) fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} is missing required property ${key}`);
+    }
+    if (shape.minProperties !== undefined && Object.keys(value).length < Number(shape.minProperties)) {
+      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates minProperties`);
+    }
+    if (shape.maxProperties !== undefined && Object.keys(value).length > Number(shape.maxProperties)) {
+      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates maxProperties`);
+    }
+
+    for (const [key, nested] of Object.entries(value)) {
+      const declared = properties[key];
+      if (declared !== undefined) {
+        assertTemplateConformsToSchema(
+          nested,
+          objectValue(declared, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.properties.${key}`),
+          source,
+          sourceContractRef,
+          `${field}.${key}`,
+        );
+        continue;
+      }
+      if (shape.additionalProperties === false) {
+        fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} contains undeclared property ${key}`);
+      }
+      if (isObject(shape.additionalProperties)) {
+        assertTemplateConformsToSchema(
+          nested,
+          shape.additionalProperties,
+          source,
+          sourceContractRef,
+          `${field}.${key}`,
+        );
+      }
+    }
+  }
+}
+
 function fieldSemantics(descriptor: Record<string, unknown>, field: string): Record<string, unknown> {
   const semantics = objectValue(
     descriptor.x_q_field_semantics,
@@ -680,6 +855,15 @@ function buildReferenceBinding(
         if (lookupInterface.request_contract_ref !== lookupRequestRef || lookupInterface.response_contract_ref !== lookupResponseRef) {
           fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} lookup Interface payload Contracts differ from lookup Operation`);
         }
+
+        const lookupRequestSchema = contractSchema(contractByRef(contracts, lookupRequestRef), lookupRequestRef);
+        assertTemplateConformsToSchema(
+          lookupRequestInputTemplate,
+          lookupRequestSchema,
+          source,
+          sourceContractRef,
+          `${field}.lookup_request_input_template`,
+        );
 
         const lookupResponseSchema = contractSchema(contractByRef(contracts, lookupResponseRef), lookupResponseRef);
         const collectionSchema = sourceSchemaAtPath(
