@@ -376,7 +376,7 @@ const UNSUPPORTED_TEMPLATE_ASSERTION_KEYWORDS = Object.freeze([
   "allOf", "anyOf", "oneOf", "not", "if", "then", "else",
   "dependentRequired", "dependentSchemas", "propertyNames", "patternProperties",
   "unevaluatedProperties", "unevaluatedItems", "contains", "minContains", "maxContains",
-  "prefixItems", "multipleOf",
+  "prefixItems", "multipleOf", "format",
 ] as const);
 
 function jsonValueKind(value: unknown): string {
