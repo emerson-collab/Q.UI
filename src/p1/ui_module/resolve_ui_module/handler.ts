@@ -1051,6 +1051,20 @@ function requestControls(
       "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS",
       field,
     );
+    if (semanticKind === "PLAIN_VALUE") {
+      const structuralType = structuralSchema.type === undefined
+        ? null
+        : effectiveSchemaType(structuralSchema, "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS", field);
+      if (
+        structuralType === "string"
+        && ["date", "time", "date-time", "duration"].includes(String(structuralSchema.format ?? ""))
+      ) {
+        fail(
+          "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
+          `${field} resolved temporal format cannot be classified PLAIN_VALUE`,
+        );
+      }
+    }
 
     let controlKind: string;
     let referenceBinding: JsonObject | null = null;
