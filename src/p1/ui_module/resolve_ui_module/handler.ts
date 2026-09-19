@@ -133,6 +133,21 @@ function nullablePath(value: unknown, code: string, field: string): readonly str
   return pathValue(value, code, field);
 }
 
+/**
+ * Capability Contract owner-local field paths may be carried as a single exact field
+ * name or as an explicit segment array. UI Module normalizes only that carrier shape;
+ * it never splits dotted strings or invents aliases.
+ */
+function sourcePathValue(value: unknown, code: string, field: string): readonly string[] {
+  if (typeof value === "string") return Object.freeze([stringValue(value, code, field)]);
+  return pathValue(value, code, field);
+}
+
+function nullableSourcePath(value: unknown, code: string, field: string): readonly string[] | null {
+  if (value === undefined || value === null) return null;
+  return sourcePathValue(value, code, field);
+}
+
 function pathListValue(value: unknown, code: string, field: string): readonly (readonly string[])[] {
   return Object.freeze(arrayValue(value, code, field).map((item, index) => pathValue(item, code, `${field}[${index}]`)));
 }
@@ -140,6 +155,19 @@ function pathListValue(value: unknown, code: string, field: string): readonly (r
 function nullablePathList(value: unknown, code: string, field: string): readonly (readonly string[])[] | null {
   if (value === undefined || value === null) return null;
   return pathListValue(value, code, field);
+}
+
+function sourcePathListValue(value: unknown, code: string, field: string): readonly (readonly string[])[] {
+  return Object.freeze(arrayValue(value, code, field).map((item, index) => (
+    typeof item === "string"
+      ? Object.freeze([stringValue(item, code, `${field}[${index}]`)])
+      : sourcePathValue(item, code, `${field}[${index}]`)
+  )));
+}
+
+function nullableSourcePathList(value: unknown, code: string, field: string): readonly (readonly string[])[] | null {
+  if (value === undefined || value === null) return null;
+  return sourcePathListValue(value, code, field);
 }
 
 function assertAllowedKeys(value: Record<string, unknown>, allowed: ReadonlySet<string>, code: string, field: string): void {
@@ -254,7 +282,268 @@ function contractByRef(contracts: Record<string, unknown>, ref: string): Record<
 }
 
 function contractSchema(contract: Record<string, unknown>, ref: string): Record<string, unknown> {
-  return objectValue(contract.schema, "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS", `${ref}.schema`);
+  const candidates = [
+    ["schema", contract.schema],
+    ["input_schema", contract.input_schema],
+    ["runtime_result_schema", contract.runtime_result_schema],
+  ].filter((entry): entry is [string, Record<string, unknown>] => isObject(entry[1]));
+
+  if (candidates.length !== 1) {
+    fail(
+      "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS",
+      `${ref} must expose exactly one machine-readable owner-local payload schema`,
+    );
+  }
+  return candidates[0]![1];
+}
+
+function ownerLocalSchemaShape(
+  schema: Record<string, unknown>,
+  source: Record<string, unknown>,
+  sourceContractRef: string,
+  code: string,
+  field: string,
+  seen: ReadonlySet<string> = new Set<string>(),
+): Record<string, unknown> {
+  if (schema.$ref === undefined) return schema;
+
+  const ref = stringValue(schema.$ref, code, `${field}.$ref`);
+  const prefix = `${sourceContractRef}#/type_closure/schemas/`;
+  if (!ref.startsWith(prefix)) {
+    fail(code, `${field} references schema outside the exact source owner type_closure: ${ref}`);
+  }
+  const schemaName = ref.slice(prefix.length);
+  if (schemaName.length === 0 || schemaName.includes("/")) {
+    fail(code, `${field} has an unsupported owner-local schema ref ${ref}`);
+  }
+  if (seen.has(ref)) fail(code, `${field} contains an owner-local schema reference cycle at ${ref}`);
+
+  const typeClosure = objectValue(source.type_closure, code, "source.type_closure");
+  const schemas = objectValue(typeClosure.schemas, code, "source.type_closure.schemas");
+  const target = objectValue(schemas[schemaName], code, `source.type_closure.schemas.${schemaName}`);
+  const nextSeen = new Set(seen);
+  nextSeen.add(ref);
+  return ownerLocalSchemaShape(target, source, sourceContractRef, code, field, nextSeen);
+}
+
+function sourceSchemaAtPath(
+  root: Record<string, unknown>,
+  path: readonly string[],
+  source: Record<string, unknown>,
+  sourceContractRef: string,
+  code: string,
+  field: string,
+): Record<string, unknown> {
+  let current = root;
+  for (const segment of path) {
+    const shape = ownerLocalSchemaShape(current, source, sourceContractRef, code, field);
+    const properties = objectValue(shape.properties, code, `${field}.properties`);
+    const next = properties[segment];
+    if (next === undefined) fail(code, `${field} path ${JSON.stringify(path)} is unresolved`);
+    current = objectValue(next, code, `${field}.${segment}`);
+  }
+  return ownerLocalSchemaShape(current, source, sourceContractRef, code, field);
+}
+
+function assertReferenceCarrierTypeCompatible(
+  selectedSchema: Record<string, unknown>,
+  candidateSchema: Record<string, unknown>,
+  source: Record<string, unknown>,
+  sourceContractRef: string,
+  field: string,
+  role: string,
+): void {
+  const selectedType = effectiveSchemaType(
+    ownerLocalSchemaShape(selectedSchema, source, sourceContractRef, "UI_MODULE_REFERENCE_BINDING_INVALID", field),
+    "UI_MODULE_REFERENCE_BINDING_INVALID",
+    `${field}.selected_reference_value`,
+  );
+  const candidateType = effectiveSchemaType(
+    ownerLocalSchemaShape(candidateSchema, source, sourceContractRef, "UI_MODULE_REFERENCE_BINDING_INVALID", field),
+    "UI_MODULE_REFERENCE_BINDING_INVALID",
+    `${field}.${role}`,
+  );
+  if (selectedType !== candidateType) {
+    fail(
+      "UI_MODULE_REFERENCE_BINDING_INVALID",
+      `${field} ${role} schema type ${candidateType} is incompatible with selected reference value type ${selectedType}`,
+    );
+  }
+}
+
+
+const UNSUPPORTED_TEMPLATE_ASSERTION_KEYWORDS = Object.freeze([
+  "allOf", "anyOf", "oneOf", "not", "if", "then", "else",
+  "dependentRequired", "dependentSchemas", "propertyNames", "patternProperties",
+  "unevaluatedProperties", "unevaluatedItems", "contains", "minContains", "maxContains",
+  "prefixItems", "multipleOf", "format",
+] as const);
+
+function jsonValueKind(value: unknown): string {
+  if (value === null) return "null";
+  if (Array.isArray(value)) return "array";
+  if (typeof value === "number" && Number.isInteger(value)) return "integer";
+  return typeof value;
+}
+
+function jsonEqual(left: unknown, right: unknown): boolean {
+  return JSON.stringify(canonicalize(left)) === JSON.stringify(canonicalize(right));
+}
+
+function assertTemplateConformsToSchema(
+  value: unknown,
+  schema: Record<string, unknown>,
+  source: Record<string, unknown>,
+  sourceContractRef: string,
+  field: string,
+): void {
+  const shape = ownerLocalSchemaShape(
+    schema,
+    source,
+    sourceContractRef,
+    "UI_MODULE_REFERENCE_BINDING_INVALID",
+    field,
+  );
+
+  for (const keyword of UNSUPPORTED_TEMPLATE_ASSERTION_KEYWORDS) {
+    if (shape[keyword] !== undefined) {
+      fail(
+        "UI_MODULE_REFERENCE_BINDING_INVALID",
+        `${field} uses unsupported JSON Schema assertion keyword ${keyword}; exact template conformance cannot be proven`,
+      );
+    }
+  }
+
+  if (shape.const !== undefined && !jsonEqual(value, shape.const)) {
+    fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} does not satisfy const`);
+  }
+  if (shape.enum !== undefined) {
+    const values = arrayValue(shape.enum, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.enum`);
+    if (!values.some((candidate) => jsonEqual(value, candidate))) {
+      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} does not satisfy enum`);
+    }
+  }
+
+  const declaredType = shape.type;
+  if (declaredType !== undefined) {
+    const allowed = (Array.isArray(declaredType) ? declaredType : [declaredType]).map((item, index) =>
+      stringValue(item, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.type[${index}]`)
+    );
+    const actual = jsonValueKind(value);
+    const matches = allowed.some((type) => (
+      type === actual || (type === "number" && actual === "integer")
+    ));
+    if (!matches) {
+      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} has JSON kind ${actual}, expected ${allowed.join("|")}`);
+    }
+  }
+
+  if (typeof value === "string") {
+    if (shape.minLength !== undefined) {
+      const minLength = Number(shape.minLength);
+      if (!Number.isInteger(minLength) || minLength < 0 || Array.from(value).length < minLength) {
+        fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates minLength`);
+      }
+    }
+    if (shape.maxLength !== undefined) {
+      const maxLength = Number(shape.maxLength);
+      if (!Number.isInteger(maxLength) || maxLength < 0 || Array.from(value).length > maxLength) {
+        fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates maxLength`);
+      }
+    }
+    if (shape.pattern !== undefined) {
+      const pattern = stringValue(shape.pattern, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.pattern`);
+      let expression: RegExp;
+      try {
+        expression = new RegExp(pattern, "u");
+      } catch {
+        fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.pattern is invalid`);
+      }
+      if (!expression.test(value)) fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates pattern`);
+    }
+  }
+
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} must be finite JSON number`);
+    if (shape.minimum !== undefined && value < Number(shape.minimum)) {
+      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates minimum`);
+    }
+    if (shape.maximum !== undefined && value > Number(shape.maximum)) {
+      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates maximum`);
+    }
+    if (shape.exclusiveMinimum !== undefined && value <= Number(shape.exclusiveMinimum)) {
+      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates exclusiveMinimum`);
+    }
+    if (shape.exclusiveMaximum !== undefined && value >= Number(shape.exclusiveMaximum)) {
+      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates exclusiveMaximum`);
+    }
+  }
+
+  if (Array.isArray(value)) {
+    if (shape.minItems !== undefined && value.length < Number(shape.minItems)) {
+      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates minItems`);
+    }
+    if (shape.maxItems !== undefined && value.length > Number(shape.maxItems)) {
+      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates maxItems`);
+    }
+    if (shape.uniqueItems === true) {
+      for (let i = 0; i < value.length; i += 1) {
+        if (value.slice(0, i).some((item) => jsonEqual(item, value[i]))) {
+          fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates uniqueItems`);
+        }
+      }
+    }
+    if (shape.items !== undefined) {
+      const itemSchema = objectValue(shape.items, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.items`);
+      value.forEach((item, index) =>
+        assertTemplateConformsToSchema(item, itemSchema, source, sourceContractRef, `${field}[${index}]`)
+      );
+    }
+  }
+
+  if (isObject(value)) {
+    const properties = shape.properties === undefined
+      ? {}
+      : objectValue(shape.properties, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.properties`);
+    const required = shape.required === undefined
+      ? []
+      : stringArray(shape.required, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.required`);
+    for (const key of required) {
+      if (!(key in value)) fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} is missing required property ${key}`);
+    }
+    if (shape.minProperties !== undefined && Object.keys(value).length < Number(shape.minProperties)) {
+      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates minProperties`);
+    }
+    if (shape.maxProperties !== undefined && Object.keys(value).length > Number(shape.maxProperties)) {
+      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} violates maxProperties`);
+    }
+
+    for (const [key, nested] of Object.entries(value)) {
+      const declared = properties[key];
+      if (declared !== undefined) {
+        assertTemplateConformsToSchema(
+          nested,
+          objectValue(declared, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.properties.${key}`),
+          source,
+          sourceContractRef,
+          `${field}.${key}`,
+        );
+        continue;
+      }
+      if (shape.additionalProperties === false) {
+        fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} contains undeclared property ${key}`);
+      }
+      if (isObject(shape.additionalProperties)) {
+        assertTemplateConformsToSchema(
+          nested,
+          shape.additionalProperties,
+          source,
+          sourceContractRef,
+          `${field}.${key}`,
+        );
+      }
+    }
+  }
 }
 
 function fieldSemantics(descriptor: Record<string, unknown>, field: string): Record<string, unknown> {
@@ -319,14 +608,31 @@ function assertSourceResolverPair(
     return;
   }
 
-  const dependencyStrings = collectStrings(source.dependencies);
-  if (localDependencyRef === null || !dependencyStrings.has(localDependencyRef)) {
-    fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} local_dependency_ref does not resolve in source dependencies`);
+  if (localDependencyRef === null) {
+    fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} declared dependency requires local_dependency_ref`);
   }
-  for (const exact of [ownerRef, operationRef, interfaceRef]) {
-    if (!dependencyStrings.has(exact)) {
-      fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} declared dependency does not preserve exact resolver authority ${exact}`);
-    }
+  const dependency = objectByRef(
+    objectValue(source.dependencies, "UI_MODULE_REFERENCE_BINDING_INVALID", "source.dependencies"),
+    "local_dependency_ref",
+    localDependencyRef,
+    "UI_MODULE_REFERENCE_BINDING_INVALID",
+    `${field}.declared dependency`,
+  );
+  if (dependency.provider_capability_contract_ref !== ownerRef) {
+    fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} reference_owner_ref does not equal selected dependency provider Contract`);
+  }
+  const allowedOperations = stringArray(
+    dependency.allowed_operation_refs,
+    "UI_MODULE_REFERENCE_BINDING_INVALID",
+    `${field}.declared dependency.allowed_operation_refs`,
+  );
+  const allowedInterfaces = stringArray(
+    dependency.allowed_interface_refs,
+    "UI_MODULE_REFERENCE_BINDING_INVALID",
+    `${field}.declared dependency.allowed_interface_refs`,
+  );
+  if (!allowedOperations.includes(operationRef) || !allowedInterfaces.includes(interfaceRef)) {
+    fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} resolver Operation/Interface is not allowed by the selected dependency`);
   }
 }
 
@@ -349,20 +655,24 @@ function buildReferenceBinding(
   if (!["ONE", "MANY"].includes(cardinality)) fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.selection_cardinality is invalid`);
   const manualEntryAllowed = booleanValue(semantics.manual_entry_allowed, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.manual_entry_allowed`);
 
-  schemaForSelectedReference(descriptor, cardinality, field);
+  const selectedReferenceSchema = schemaForSelectedReference(
+    ownerLocalSchemaShape(descriptor, source, sourceContractRef, "UI_MODULE_REFERENCE_BINDING_INVALID", field),
+    cardinality,
+    field,
+  );
 
   let referenceOwnerRef = nullableString(semantics.reference_owner_ref, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.reference_owner_ref`);
   let localDependencyRef = nullableString(semantics.local_dependency_ref, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.local_dependency_ref`);
-  let identityFieldPath = nullablePath(semantics.identity_field_path, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.identity_field_path`);
-  let displayFieldPaths = nullablePathList(semantics.display_field_paths, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.display_field_paths`);
+  let identityFieldPath = nullableSourcePath(semantics.identity_field_path, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.identity_field_path`);
+  let displayFieldPaths = nullableSourcePathList(semantics.display_field_paths, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.display_field_paths`);
   let readOperationRef = nullableString(semantics.read_operation_ref, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.read_operation_ref`);
   let readInterfaceRef = nullableString(semantics.read_interface_ref, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.read_interface_ref`);
-  let readRequestIdentityFieldPath = nullablePath(
+  let readRequestIdentityFieldPath = nullableSourcePath(
     semantics.read_request_identity_field_path,
     "UI_MODULE_REFERENCE_BINDING_INVALID",
     `${field}.read_request_identity_field_path`,
   );
-  let readResultObjectPath = nullablePath(
+  let readResultObjectPath = nullableSourcePath(
     semantics.read_result_object_path,
     "UI_MODULE_REFERENCE_BINDING_INVALID",
     `${field}.read_result_object_path`,
@@ -376,7 +686,7 @@ function buildReferenceBinding(
         "UI_MODULE_REFERENCE_BINDING_INVALID",
         `${field}.lookup_request_input_template`,
       ));
-  let lookupResultCollectionPath = nullablePath(
+  let lookupResultCollectionPath = nullableSourcePath(
     semantics.lookup_result_collection_path,
     "UI_MODULE_REFERENCE_BINDING_INVALID",
     `${field}.lookup_result_collection_path`,
@@ -413,6 +723,98 @@ function buildReferenceBinding(
     }
     assertSourceResolverPair(source, readOperationRef, readInterfaceRef, ownerMode, localDependencyRef, referenceOwnerRef, field);
 
+    if (ownerMode === "SELF") {
+      const operations = objectValue(source.operations, "UI_MODULE_REFERENCE_BINDING_INVALID", "source.operations");
+      const interfaces = objectValue(source.interfaces, "UI_MODULE_REFERENCE_BINDING_INVALID", "source.interfaces");
+      const contracts = objectValue(source.contracts, "UI_MODULE_REFERENCE_BINDING_INVALID", "source.contracts");
+      const readOperation = objectByRef(
+        operations,
+        "operation_ref",
+        readOperationRef,
+        "UI_MODULE_REFERENCE_BINDING_INVALID",
+        `${field}.read operation`,
+      );
+      const readInterface = objectByRef(
+        interfaces,
+        "interface_ref",
+        readInterfaceRef,
+        "UI_MODULE_REFERENCE_BINDING_INVALID",
+        `${field}.read interface`,
+      );
+      const readRequestRef = stringValue(
+        readOperation.request_contract_ref,
+        "UI_MODULE_REFERENCE_BINDING_INVALID",
+        `${field}.read operation.request_contract_ref`,
+      );
+      const readResponseRef = stringValue(
+        readOperation.response_contract_ref,
+        "UI_MODULE_REFERENCE_BINDING_INVALID",
+        `${field}.read operation.response_contract_ref`,
+      );
+      if (readInterface.request_contract_ref !== readRequestRef || readInterface.response_contract_ref !== readResponseRef) {
+        fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} read Interface payload Contracts differ from read Operation`);
+      }
+
+      const readRequestSchema = contractSchema(contractByRef(contracts, readRequestRef), readRequestRef);
+      const readResponseSchema = contractSchema(contractByRef(contracts, readResponseRef), readResponseRef);
+      const readIdentitySchema = sourceSchemaAtPath(
+        readRequestSchema,
+        readRequestIdentityFieldPath,
+        source,
+        sourceContractRef,
+        "UI_MODULE_REFERENCE_BINDING_INVALID",
+        `${field}.read_request_identity_field_path`,
+      );
+      assertReferenceCarrierTypeCompatible(
+        selectedReferenceSchema,
+        readIdentitySchema,
+        source,
+        sourceContractRef,
+        field,
+        "read_request_identity_field_path",
+      );
+      const readResultObject = sourceSchemaAtPath(
+        readResponseSchema,
+        readResultObjectPath,
+        source,
+        sourceContractRef,
+        "UI_MODULE_REFERENCE_BINDING_INVALID",
+        `${field}.read_result_object_path`,
+      );
+      if (effectiveSchemaType(readResultObject, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.read_result_object_path`) !== "object") {
+        fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.read_result_object_path must resolve to an object`);
+      }
+
+      if (resolutionMode === "EXACT_READ") {
+        const identitySchema = sourceSchemaAtPath(
+          readResultObject,
+          identityFieldPath,
+          source,
+          sourceContractRef,
+          "UI_MODULE_REFERENCE_BINDING_INVALID",
+          `${field}.identity_field_path`,
+        );
+        assertReferenceCarrierTypeCompatible(
+          selectedReferenceSchema,
+          identitySchema,
+          source,
+          sourceContractRef,
+          field,
+          "identity_field_path",
+        );
+        for (let index = 0; index < displayFieldPaths.length; index += 1) {
+          sourceSchemaAtPath(
+            readResultObject,
+            displayFieldPaths[index]!,
+            source,
+            sourceContractRef,
+            "UI_MODULE_REFERENCE_BINDING_INVALID",
+            `${field}.display_field_paths[${index}]`,
+          );
+        }
+      }
+    }
+
     if (resolutionMode === "ENUMERABLE_LOOKUP") {
       if (
         lookupOperationRef === null || lookupInterfaceRef === null || lookupRequestInputTemplate === null
@@ -421,6 +823,94 @@ function buildReferenceBinding(
         fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} ENUMERABLE_LOOKUP is missing lookup closure`);
       }
       assertSourceResolverPair(source, lookupOperationRef, lookupInterfaceRef, ownerMode, localDependencyRef, referenceOwnerRef, field);
+
+      if (ownerMode === "SELF") {
+        const operations = objectValue(source.operations, "UI_MODULE_REFERENCE_BINDING_INVALID", "source.operations");
+        const interfaces = objectValue(source.interfaces, "UI_MODULE_REFERENCE_BINDING_INVALID", "source.interfaces");
+        const contracts = objectValue(source.contracts, "UI_MODULE_REFERENCE_BINDING_INVALID", "source.contracts");
+        const lookupOperation = objectByRef(
+          operations,
+          "operation_ref",
+          lookupOperationRef,
+          "UI_MODULE_REFERENCE_BINDING_INVALID",
+          `${field}.lookup operation`,
+        );
+        const lookupInterface = objectByRef(
+          interfaces,
+          "interface_ref",
+          lookupInterfaceRef,
+          "UI_MODULE_REFERENCE_BINDING_INVALID",
+          `${field}.lookup interface`,
+        );
+        const lookupRequestRef = stringValue(
+          lookupOperation.request_contract_ref,
+          "UI_MODULE_REFERENCE_BINDING_INVALID",
+          `${field}.lookup operation.request_contract_ref`,
+        );
+        const lookupResponseRef = stringValue(
+          lookupOperation.response_contract_ref,
+          "UI_MODULE_REFERENCE_BINDING_INVALID",
+          `${field}.lookup operation.response_contract_ref`,
+        );
+        if (lookupInterface.request_contract_ref !== lookupRequestRef || lookupInterface.response_contract_ref !== lookupResponseRef) {
+          fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field} lookup Interface payload Contracts differ from lookup Operation`);
+        }
+
+        const lookupRequestSchema = contractSchema(contractByRef(contracts, lookupRequestRef), lookupRequestRef);
+        assertTemplateConformsToSchema(
+          lookupRequestInputTemplate,
+          lookupRequestSchema,
+          source,
+          sourceContractRef,
+          `${field}.lookup_request_input_template`,
+        );
+
+        const lookupResponseSchema = contractSchema(contractByRef(contracts, lookupResponseRef), lookupResponseRef);
+        const collectionSchema = sourceSchemaAtPath(
+          lookupResponseSchema,
+          lookupResultCollectionPath,
+          source,
+          sourceContractRef,
+          "UI_MODULE_REFERENCE_BINDING_INVALID",
+          `${field}.lookup_result_collection_path`,
+        );
+        if (effectiveSchemaType(collectionSchema, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.lookup_result_collection_path`) !== "array") {
+          fail("UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.lookup_result_collection_path must resolve to an array`);
+        }
+        const candidateSchema = ownerLocalSchemaShape(
+          objectValue(collectionSchema.items, "UI_MODULE_REFERENCE_BINDING_INVALID", `${field}.lookup_result_collection_path.items`),
+          source,
+          sourceContractRef,
+          "UI_MODULE_REFERENCE_BINDING_INVALID",
+          `${field}.lookup_result_collection_path.items`,
+        );
+        const candidateIdentitySchema = sourceSchemaAtPath(
+          candidateSchema,
+          identityFieldPath,
+          source,
+          sourceContractRef,
+          "UI_MODULE_REFERENCE_BINDING_INVALID",
+          `${field}.identity_field_path`,
+        );
+        assertReferenceCarrierTypeCompatible(
+          selectedReferenceSchema,
+          candidateIdentitySchema,
+          source,
+          sourceContractRef,
+          field,
+          "lookup candidate identity_field_path",
+        );
+        for (let index = 0; index < displayFieldPaths.length; index += 1) {
+          sourceSchemaAtPath(
+            candidateSchema,
+            displayFieldPaths[index]!,
+            source,
+            sourceContractRef,
+            "UI_MODULE_REFERENCE_BINDING_INVALID",
+            `${field}.display_field_paths[${index}]`,
+          );
+        }
+      }
     } else if (
       lookupOperationRef !== null || lookupInterfaceRef !== null || lookupRequestInputTemplate !== null
       || lookupResultCollectionPath !== null
@@ -453,6 +943,8 @@ function buildReferenceBinding(
 function buildTemporalBinding(
   descriptor: Record<string, unknown>,
   semantics: Record<string, unknown>,
+  source: Record<string, unknown>,
+  sourceContractRef: string,
   field: string,
 ): JsonObject {
   const temporalKind = stringValue(semantics.temporal_kind, "UI_MODULE_TEMPORAL_BINDING_INVALID", `${field}.temporal_kind`);
@@ -461,7 +953,11 @@ function buildTemporalBinding(
   }
 
   if (temporalKind !== "RANGE") {
-    const type = effectiveSchemaType(descriptor, "UI_MODULE_TEMPORAL_BINDING_INVALID", field);
+    const type = effectiveSchemaType(
+      ownerLocalSchemaShape(descriptor, source, sourceContractRef, "UI_MODULE_TEMPORAL_BINDING_INVALID", field),
+      "UI_MODULE_TEMPORAL_BINDING_INVALID",
+      field,
+    );
     const expectedFormat = TEMPORAL_FORMAT_BY_KIND[temporalKind as keyof typeof TEMPORAL_FORMAT_BY_KIND];
     if (type !== "string" || descriptor.format !== expectedFormat) {
       fail("UI_MODULE_TEMPORAL_BINDING_INVALID", `${field} ${temporalKind} must be string/${expectedFormat}`);
@@ -481,12 +977,19 @@ function buildTemporalBinding(
     });
   }
 
-  const type = effectiveSchemaType(descriptor, "UI_MODULE_TEMPORAL_BINDING_INVALID", field);
+  const rangeRoot = ownerLocalSchemaShape(
+    descriptor,
+    source,
+    sourceContractRef,
+    "UI_MODULE_TEMPORAL_BINDING_INVALID",
+    field,
+  );
+  const type = effectiveSchemaType(rangeRoot, "UI_MODULE_TEMPORAL_BINDING_INVALID", field);
   if (type !== "object" || descriptor.format !== undefined) {
     fail("UI_MODULE_TEMPORAL_BINDING_INVALID", `${field} RANGE must be an object without scalar format`);
   }
-  const startPath = pathValue(semantics.range_start_path, "UI_MODULE_TEMPORAL_BINDING_INVALID", `${field}.range_start_path`);
-  const endPath = pathValue(semantics.range_end_path, "UI_MODULE_TEMPORAL_BINDING_INVALID", `${field}.range_end_path`);
+  const startPath = sourcePathValue(semantics.range_start_path, "UI_MODULE_TEMPORAL_BINDING_INVALID", `${field}.range_start_path`);
+  const endPath = sourcePathValue(semantics.range_end_path, "UI_MODULE_TEMPORAL_BINDING_INVALID", `${field}.range_end_path`);
   if (JSON.stringify(startPath) === JSON.stringify(endPath)) {
     fail("UI_MODULE_TEMPORAL_BINDING_INVALID", `${field} RANGE start and end paths must be distinct`);
   }
@@ -496,7 +999,14 @@ function buildTemporalBinding(
   }
   const expected = TEMPORAL_FORMAT_BY_KIND[endpointKind as "DATE" | "TIME" | "DATE_TIME"];
   for (const [name, path] of [["start", startPath], ["end", endPath]] as const) {
-    const endpoint = schemaAtPath(descriptor, path, "UI_MODULE_TEMPORAL_BINDING_INVALID", `${field}.${name}`);
+    const endpoint = sourceSchemaAtPath(
+      rangeRoot,
+      path,
+      source,
+      sourceContractRef,
+      "UI_MODULE_TEMPORAL_BINDING_INVALID",
+      `${field}.${name}`,
+    );
     if (effectiveSchemaType(endpoint, "UI_MODULE_TEMPORAL_BINDING_INVALID", `${field}.${name}`) !== "string" || endpoint.format !== expected) {
       fail("UI_MODULE_TEMPORAL_BINDING_INVALID", `${field} RANGE ${name} endpoint must be string/${expected}`);
     }
@@ -534,6 +1044,27 @@ function requestControls(
     const descriptor = objectValue(raw, "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS", field);
     const semantics = fieldSemantics(descriptor, field);
     const semanticKind = semantics.semantic_kind as string;
+    const structuralSchema = ownerLocalSchemaShape(
+      descriptor,
+      source,
+      sourceContractRef,
+      "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS",
+      field,
+    );
+    if (semanticKind === "PLAIN_VALUE") {
+      const structuralType = structuralSchema.type === undefined
+        ? null
+        : effectiveSchemaType(structuralSchema, "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS", field);
+      if (
+        structuralType === "string"
+        && ["date", "time", "date-time", "duration"].includes(String(structuralSchema.format ?? ""))
+      ) {
+        fail(
+          "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
+          `${field} resolved temporal format cannot be classified PLAIN_VALUE`,
+        );
+      }
+    }
 
     let controlKind: string;
     let referenceBinding: JsonObject | null = null;
@@ -544,11 +1075,11 @@ function requestControls(
       referenceBinding = buildReferenceBinding(descriptor, semantics, source, sourceContractRef, field);
     } else if (semanticKind === "TEMPORAL") {
       controlKind = "TEMPORAL_INPUT";
-      temporalBinding = buildTemporalBinding(descriptor, semantics, field);
-    } else if (Array.isArray(descriptor.enum) && descriptor.enum.length > 0) {
+      temporalBinding = buildTemporalBinding(descriptor, semantics, source, sourceContractRef, field);
+    } else if (Array.isArray(structuralSchema.enum) && structuralSchema.enum.length > 0) {
       controlKind = "SELECT_INPUT";
     } else {
-      const type = effectiveSchemaType(descriptor, "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS", field);
+      const type = effectiveSchemaType(structuralSchema, "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS", field);
       controlKind = PLAIN_CONTROL_MAPPING[type];
     }
 
@@ -569,6 +1100,8 @@ function requestControls(
 
 function responseViews(
   schema: Record<string, unknown>,
+  source: Record<string, unknown>,
+  sourceContractRef: string,
   operationRef: string,
   responseContractRef: string,
 ): readonly JsonObject[] {
@@ -577,10 +1110,17 @@ function responseViews(
   return Object.freeze(Object.entries(properties).map(([fieldName, raw], index) => {
     const field = `${responseContractRef}.schema.properties.${fieldName}`;
     const descriptor = objectValue(raw, "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS", field);
+    const structuralSchema = ownerLocalSchemaShape(
+      descriptor,
+      source,
+      sourceContractRef,
+      "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS",
+      field,
+    );
     let viewKind: string;
-    if (Array.isArray(descriptor.enum) && descriptor.enum.length > 0) viewKind = "VALUE_VIEW";
+    if (Array.isArray(structuralSchema.enum) && structuralSchema.enum.length > 0) viewKind = "VALUE_VIEW";
     else {
-      const type = effectiveSchemaType(descriptor, "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS", field);
+      const type = effectiveSchemaType(structuralSchema, "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS", field);
       viewKind = RESPONSE_VIEW_MAPPING[type];
     }
     return deep_freeze({
@@ -1003,6 +1543,8 @@ export async function handler(input: unknown): Promise<Readonly<Record<string, u
       );
       const views = responseViews(
         contractSchema(responseContract, responseContractRef),
+        source,
+        sourceContractRef,
         operationRef,
         responseContractRef,
       );

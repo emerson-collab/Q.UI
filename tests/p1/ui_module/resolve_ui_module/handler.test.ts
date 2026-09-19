@@ -12,6 +12,7 @@ function projectionInput() {
   const interfaceRef = `${contractRef}#/interfaces/example_create_invoke`;
   const operationRef = `${contractRef}#/operations/create_example`;
   const capabilityRef = "Q.TEST.CAPABILITY.EXAMPLE@V0100";
+
   return {
     source_capability_ref: capabilityRef,
     projection_ref: "Q.TEST.UI.MODULE.PROJECTION.EXAMPLE@V0100",
@@ -46,7 +47,8 @@ function projectionInput() {
         contracts: {
           create_request: {
             contract_ref: requestRef,
-            schema: {
+            payload_boundary: "input",
+            input_schema: {
               type: "object",
               properties: {
                 name: {
@@ -82,7 +84,8 @@ function projectionInput() {
           },
           create_response: {
             contract_ref: responseRef,
-            schema: {
+            payload_boundary: "runtime_result",
+            runtime_result_schema: {
               type: "object",
               properties: {
                 example_ref: { type: "string" },
@@ -92,7 +95,7 @@ function projectionInput() {
             },
           },
         },
-        type_closure: {},
+        type_closure: { schemas: {} },
         stable_errors: {},
         dependencies: {},
         extraction: { external_provider_surface_ref: `${contractRef}#/external_provider_surface` },
@@ -120,6 +123,179 @@ function projectionInput() {
       },
     },
   };
+}
+
+function selfReferenceInput() {
+  const input: any = projectionInput();
+  const source = input.projection_input.source_capability_semantic_projection;
+  const contractRef = input.projection_input.source_capability_contract_ref;
+  const outcomeRef = source.operations.create_example.outcome_contract_ref;
+  const stableErrorRef = source.operations.create_example.stable_error_contract_ref;
+  const readOperationRef = `${contractRef}#/operations/read_example`;
+  const readInterfaceRef = `${contractRef}#/interfaces/example_read_invoke`;
+  const readRequestRef = `${contractRef}#/contracts/read_example_request`;
+  const readResponseRef = `${contractRef}#/contracts/read_example_response`;
+  const referenceSemantics = {
+    semantic_kind: "BUSINESS_REFERENCE",
+    reference_owner_mode: "SELF",
+    reference_owner_ref: contractRef,
+    resolution_mode: "EXACT_READ",
+    selection_cardinality: "ONE",
+    manual_entry_allowed: false,
+    identity_field_path: "example_ref",
+    display_field_paths: ["name"],
+    read_operation_ref: readOperationRef,
+    read_interface_ref: readInterfaceRef,
+    read_request_identity_field_path: "example_ref",
+    read_result_object_path: "example",
+  };
+
+  source.contracts.create_request.input_schema.properties.external_ref.x_q_field_semantics = referenceSemantics;
+  source.operations.read_example = {
+    operation_ref: readOperationRef,
+    request_contract_ref: readRequestRef,
+    response_contract_ref: readResponseRef,
+    stable_error_contract_ref: stableErrorRef,
+    outcome_contract_ref: outcomeRef,
+    interface_refs: [readInterfaceRef],
+  };
+  source.interfaces.example_read_invoke = {
+    interface_ref: readInterfaceRef,
+    operation_ref: readOperationRef,
+    request_contract_ref: readRequestRef,
+    response_contract_ref: readResponseRef,
+    stable_error_contract_ref: stableErrorRef,
+    outcome_contract_ref: outcomeRef,
+  };
+  source.contracts.read_example_request = {
+    contract_ref: readRequestRef,
+    payload_boundary: "input",
+    input_schema: {
+      type: "object",
+      properties: {
+        example_ref: {
+          type: "string",
+          x_q_field_semantics: referenceSemantics,
+        },
+      },
+      required: ["example_ref"],
+    },
+  };
+  source.contracts.read_example_response = {
+    contract_ref: readResponseRef,
+    payload_boundary: "runtime_result",
+    runtime_result_schema: {
+      type: "object",
+      properties: {
+        example: {
+          $ref: `${contractRef}#/type_closure/schemas/example`,
+        },
+      },
+      required: ["example"],
+    },
+  };
+  source.type_closure.schemas.example = {
+    type: "object",
+    properties: {
+      example_ref: { type: "string" },
+      name: { type: "string" },
+    },
+    required: ["example_ref", "name"],
+  };
+  source.permission_model.operation_permission_bindings.push({
+    permission_ref: `${contractRef}#/permission_model/operation_permission_bindings/read_example`,
+    operation_ref: readOperationRef,
+    access_mode: "UNRESTRICTED",
+    actor_class_refs: [],
+    authorization_rule_refs: [],
+    denial_stable_error_code: null,
+  });
+
+  return input;
+}
+
+function enumerableSelfReferenceInput() {
+  const input: any = selfReferenceInput();
+  const source = input.projection_input.source_capability_semantic_projection;
+  const contractRef = input.projection_input.source_capability_contract_ref;
+  const outcomeRef = source.operations.create_example.outcome_contract_ref;
+  const stableErrorRef = source.operations.create_example.stable_error_contract_ref;
+  const lookupOperationRef = `${contractRef}#/operations/lookup_example`;
+  const lookupInterfaceRef = `${contractRef}#/interfaces/example_lookup_invoke`;
+  const lookupRequestRef = `${contractRef}#/contracts/lookup_example_request`;
+  const lookupResponseRef = `${contractRef}#/contracts/lookup_example_response`;
+
+  const semantics = source.contracts.create_request.input_schema.properties.external_ref.x_q_field_semantics;
+  semantics.resolution_mode = "ENUMERABLE_LOOKUP";
+  semantics.lookup_operation_ref = lookupOperationRef;
+  semantics.lookup_interface_ref = lookupInterfaceRef;
+  semantics.lookup_request_input_template = { filters: {} };
+  semantics.lookup_result_collection_path = "items";
+
+  source.operations.lookup_example = {
+    operation_ref: lookupOperationRef,
+    request_contract_ref: lookupRequestRef,
+    response_contract_ref: lookupResponseRef,
+    stable_error_contract_ref: stableErrorRef,
+    outcome_contract_ref: outcomeRef,
+    interface_refs: [lookupInterfaceRef],
+  };
+  source.interfaces.example_lookup_invoke = {
+    interface_ref: lookupInterfaceRef,
+    operation_ref: lookupOperationRef,
+    request_contract_ref: lookupRequestRef,
+    response_contract_ref: lookupResponseRef,
+    stable_error_contract_ref: stableErrorRef,
+    outcome_contract_ref: outcomeRef,
+  };
+  source.contracts.lookup_example_request = {
+    contract_ref: lookupRequestRef,
+    payload_boundary: "input",
+    input_schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        filters: {
+          type: "object",
+          additionalProperties: false,
+          properties: {},
+          x_q_field_semantics: { semantic_kind: "PLAIN_VALUE" },
+        },
+        limit: {
+          type: "integer",
+          minimum: 1,
+          maximum: 100,
+          x_q_field_semantics: { semantic_kind: "PLAIN_VALUE" },
+        },
+      },
+      required: ["filters"],
+    },
+  };
+  source.contracts.lookup_example_response = {
+    contract_ref: lookupResponseRef,
+    payload_boundary: "runtime_result",
+    runtime_result_schema: {
+      type: "object",
+      properties: {
+        items: {
+          type: "array",
+          items: { $ref: `${contractRef}#/type_closure/schemas/example` },
+        },
+        next_cursor: { type: "string" },
+      },
+      required: ["items"],
+    },
+  };
+  source.permission_model.operation_permission_bindings.push({
+    permission_ref: `${contractRef}#/permission_model/operation_permission_bindings/lookup_example`,
+    operation_ref: lookupOperationRef,
+    access_mode: "UNRESTRICTED",
+    actor_class_refs: [],
+    authorization_rule_refs: [],
+    denial_stable_error_code: null,
+  });
+
+  return input;
 }
 
 test("V0117 emits V6 closed semantic model with exact source lineage", async () => {
@@ -156,9 +332,67 @@ test("V0117 preserves internal interfaces but only provider interfaces become ac
   assert.equal(artifact.action_bindings.length, 0);
 });
 
+test("V0117 reads current Capability Contract input_schema/runtime_result_schema carriers", async () => {
+  const result = await handler(projectionInput());
+  const artifact = result.ui_module_artifact as Record<string, any>;
+  assert.equal(artifact.action_bindings[0].request_controls.length, 4);
+  assert.equal(artifact.action_bindings[0].response_views.length, 2);
+});
+
+test("V0117 normalizes exact single-segment source reference paths and resolves owner-local type_closure refs", async () => {
+  const result = await handler(selfReferenceInput());
+  const artifact = result.ui_module_artifact as Record<string, any>;
+  const reference = artifact.action_bindings[0].request_controls.find((x: any) => x.source_field_path[0] === "external_ref").reference_binding;
+  assert.deepEqual(reference.identity_field_path, ["example_ref"]);
+  assert.deepEqual(reference.display_field_paths, [["name"]]);
+  assert.deepEqual(reference.read_request_identity_field_path, ["example_ref"]);
+  assert.deepEqual(reference.read_result_object_path, ["example"]);
+  assert.equal(reference.source_reference_semantics.identity_field_path, "example_ref");
+  assert.equal(artifact.semantic_model.operation_projections.length, 2);
+});
+
+test("V0117 validates ENUMERABLE_LOOKUP template against the exact lookup request schema", async () => {
+  const result = await handler(enumerableSelfReferenceInput());
+  const artifact = result.ui_module_artifact as Record<string, any>;
+  const reference = artifact.action_bindings[0].request_controls.find((x: any) => x.source_field_path[0] === "external_ref").reference_binding;
+  assert.equal(reference.resolution_mode, "ENUMERABLE_LOOKUP");
+  assert.deepEqual(reference.lookup_result_collection_path, ["items"]);
+  assert.deepEqual(reference.lookup_request_input_template, { filters: {} });
+});
+
+test("V0117 fails closed when ENUMERABLE_LOOKUP template violates the exact lookup request schema", async () => {
+  const input: any = enumerableSelfReferenceInput();
+  input.projection_input.source_capability_semantic_projection.contracts.create_request
+    .input_schema.properties.external_ref.x_q_field_semantics.lookup_request_input_template = { limit: 10 };
+  await assert.rejects(
+    () => handler(input),
+    (error: unknown) => error instanceof StableRuntimeError && error.code === "UI_MODULE_REFERENCE_BINDING_INVALID",
+  );
+});
+
+test("V0117 fails closed when SELF reference read_result_object_path is unresolved", async () => {
+  const input: any = selfReferenceInput();
+  input.projection_input.source_capability_semantic_projection.contracts.create_request
+    .input_schema.properties.external_ref.x_q_field_semantics.read_result_object_path = "missing";
+  await assert.rejects(
+    () => handler(input),
+    (error: unknown) => error instanceof StableRuntimeError && error.code === "UI_MODULE_REFERENCE_BINDING_INVALID",
+  );
+});
+
+test("V0117 fails closed when SELF reference identity schema is incompatible", async () => {
+  const input: any = selfReferenceInput();
+  input.projection_input.source_capability_semantic_projection.type_closure.schemas.example
+    .properties.example_ref.type = "integer";
+  await assert.rejects(
+    () => handler(input),
+    (error: unknown) => error instanceof StableRuntimeError && error.code === "UI_MODULE_REFERENCE_BINDING_INVALID",
+  );
+});
+
 test("V0117 fails closed when request field semantics are missing", async () => {
   const input: any = projectionInput();
-  delete input.projection_input.source_capability_semantic_projection.contracts.create_request.schema.properties.name.x_q_field_semantics;
+  delete input.projection_input.source_capability_semantic_projection.contracts.create_request.input_schema.properties.name.x_q_field_semantics;
   await assert.rejects(
     () => handler(input),
     (error: unknown) => error instanceof StableRuntimeError && error.code === "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
@@ -167,10 +401,25 @@ test("V0117 fails closed when request field semantics are missing", async () => 
 
 test("V0117 fails closed when temporal annotation conflicts with exact schema format", async () => {
   const input: any = projectionInput();
-  input.projection_input.source_capability_semantic_projection.contracts.create_request.schema.properties.due_at.format = "date";
+  input.projection_input.source_capability_semantic_projection.contracts.create_request.input_schema.properties.due_at.format = "date";
   await assert.rejects(
     () => handler(input),
     (error: unknown) => error instanceof StableRuntimeError && error.code === "UI_MODULE_TEMPORAL_BINDING_INVALID",
+  );
+});
+
+test("V0117 fails closed when an owner-local referenced temporal schema is classified PLAIN_VALUE", async () => {
+  const input: any = projectionInput();
+  const source = input.projection_input.source_capability_semantic_projection;
+  const contractRef = input.projection_input.source_capability_contract_ref;
+  source.type_closure.schemas.temporal_value = { type: "string", format: "date-time" };
+  source.contracts.create_request.input_schema.properties.due_at = {
+    $ref: `${contractRef}#/type_closure/schemas/temporal_value`,
+    x_q_field_semantics: { semantic_kind: "PLAIN_VALUE" },
+  };
+  await assert.rejects(
+    () => handler(input),
+    (error: unknown) => error instanceof StableRuntimeError && error.code === "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
   );
 });
 
