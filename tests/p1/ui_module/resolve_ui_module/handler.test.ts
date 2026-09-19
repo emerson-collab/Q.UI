@@ -214,6 +214,90 @@ function selfReferenceInput() {
   return input;
 }
 
+function enumerableSelfReferenceInput() {
+  const input: any = selfReferenceInput();
+  const source = input.projection_input.source_capability_semantic_projection;
+  const contractRef = input.projection_input.source_capability_contract_ref;
+  const outcomeRef = source.operations.create_example.outcome_contract_ref;
+  const stableErrorRef = source.operations.create_example.stable_error_contract_ref;
+  const lookupOperationRef = `${contractRef}#/operations/lookup_example`;
+  const lookupInterfaceRef = `${contractRef}#/interfaces/example_lookup_invoke`;
+  const lookupRequestRef = `${contractRef}#/contracts/lookup_example_request`;
+  const lookupResponseRef = `${contractRef}#/contracts/lookup_example_response`;
+
+  const semantics = source.contracts.create_request.input_schema.properties.external_ref.x_q_field_semantics;
+  semantics.resolution_mode = "ENUMERABLE_LOOKUP";
+  semantics.lookup_operation_ref = lookupOperationRef;
+  semantics.lookup_interface_ref = lookupInterfaceRef;
+  semantics.lookup_request_input_template = { filters: {} };
+  semantics.lookup_result_collection_path = "items";
+
+  source.operations.lookup_example = {
+    operation_ref: lookupOperationRef,
+    request_contract_ref: lookupRequestRef,
+    response_contract_ref: lookupResponseRef,
+    stable_error_contract_ref: stableErrorRef,
+    outcome_contract_ref: outcomeRef,
+    interface_refs: [lookupInterfaceRef],
+  };
+  source.interfaces.example_lookup_invoke = {
+    interface_ref: lookupInterfaceRef,
+    operation_ref: lookupOperationRef,
+    request_contract_ref: lookupRequestRef,
+    response_contract_ref: lookupResponseRef,
+    stable_error_contract_ref: stableErrorRef,
+    outcome_contract_ref: outcomeRef,
+  };
+  source.contracts.lookup_example_request = {
+    contract_ref: lookupRequestRef,
+    payload_boundary: "input",
+    input_schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        filters: {
+          type: "object",
+          additionalProperties: false,
+          properties: {},
+          x_q_field_semantics: { semantic_kind: "PLAIN_VALUE" },
+        },
+        limit: {
+          type: "integer",
+          minimum: 1,
+          maximum: 100,
+          x_q_field_semantics: { semantic_kind: "PLAIN_VALUE" },
+        },
+      },
+      required: ["filters"],
+    },
+  };
+  source.contracts.lookup_example_response = {
+    contract_ref: lookupResponseRef,
+    payload_boundary: "runtime_result",
+    runtime_result_schema: {
+      type: "object",
+      properties: {
+        items: {
+          type: "array",
+          items: { $ref: `${contractRef}#/type_closure/schemas/example` },
+        },
+        next_cursor: { type: "string" },
+      },
+      required: ["items"],
+    },
+  };
+  source.permission_model.operation_permission_bindings.push({
+    permission_ref: `${contractRef}#/permission_model/operation_permission_bindings/lookup_example`,
+    operation_ref: lookupOperationRef,
+    access_mode: "UNRESTRICTED",
+    actor_class_refs: [],
+    authorization_rule_refs: [],
+    denial_stable_error_code: null,
+  });
+
+  return input;
+}
+
 test("V0117 emits V6 closed semantic model with exact source lineage", async () => {
   const result = await handler(projectionInput());
   const artifact = result.ui_module_artifact as Record<string, any>;
@@ -265,6 +349,25 @@ test("V0117 normalizes exact single-segment source reference paths and resolves 
   assert.deepEqual(reference.read_result_object_path, ["example"]);
   assert.equal(reference.source_reference_semantics.identity_field_path, "example_ref");
   assert.equal(artifact.semantic_model.operation_projections.length, 2);
+});
+
+test("V0117 validates ENUMERABLE_LOOKUP template against the exact lookup request schema", async () => {
+  const result = await handler(enumerableSelfReferenceInput());
+  const artifact = result.ui_module_artifact as Record<string, any>;
+  const reference = artifact.action_bindings[0].request_controls.find((x: any) => x.source_field_path[0] === "external_ref").reference_binding;
+  assert.equal(reference.resolution_mode, "ENUMERABLE_LOOKUP");
+  assert.deepEqual(reference.lookup_result_collection_path, ["items"]);
+  assert.deepEqual(reference.lookup_request_input_template, { filters: {} });
+});
+
+test("V0117 fails closed when ENUMERABLE_LOOKUP template violates the exact lookup request schema", async () => {
+  const input: any = enumerableSelfReferenceInput();
+  input.projection_input.source_capability_semantic_projection.contracts.create_request
+    .input_schema.properties.external_ref.x_q_field_semantics.lookup_request_input_template = { limit: 10 };
+  await assert.rejects(
+    () => handler(input),
+    (error: unknown) => error instanceof StableRuntimeError && error.code === "UI_MODULE_REFERENCE_BINDING_INVALID",
+  );
 });
 
 test("V0117 fails closed when SELF reference read_result_object_path is unresolved", async () => {
