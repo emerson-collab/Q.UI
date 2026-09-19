@@ -408,6 +408,21 @@ test("V0117 fails closed when temporal annotation conflicts with exact schema fo
   );
 });
 
+test("V0117 fails closed when an owner-local referenced temporal schema is classified PLAIN_VALUE", async () => {
+  const input: any = projectionInput();
+  const source = input.projection_input.source_capability_semantic_projection;
+  const contractRef = input.projection_input.source_capability_contract_ref;
+  source.type_closure.schemas.temporal_value = { type: "string", format: "date-time" };
+  source.contracts.create_request.input_schema.properties.due_at = {
+    $ref: `${contractRef}#/type_closure/schemas/temporal_value`,
+    x_q_field_semantics: { semantic_kind: "PLAIN_VALUE" },
+  };
+  await assert.rejects(
+    () => handler(input),
+    (error: unknown) => error instanceof StableRuntimeError && error.code === "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
+  );
+});
+
 test("V0117 artifact hash excludes logical identity but includes projection semantics", async () => {
   const inputA: any = projectionInput();
   const a = (await handler(inputA)).ui_module_artifact as Record<string, any>;
