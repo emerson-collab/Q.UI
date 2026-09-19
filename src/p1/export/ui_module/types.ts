@@ -1,13 +1,5 @@
 export type JsonObject = Readonly<Record<string, unknown>>;
 
-export interface StableErrorOutcome {
-  readonly outcome_type: "stable_error";
-  readonly stable_error: Readonly<{ case: string }>;
-  readonly evidence_ref: string;
-  readonly trace_id: string;
-  readonly request_id: string;
-}
-
 export interface UiModuleArtifact {
   readonly ui_module_ref: string;
   readonly source_capability_ref: string;
@@ -23,21 +15,19 @@ export interface UiModuleArtifact {
   readonly content_hash: string;
 }
 
+/**
+ * Exact V0117 business input payload.
+ *
+ * trace_id/request_id and runtime outcome/evidence/receipt carriers are owned by the
+ * P0/P1 framework and are intentionally absent from this owner-local payload type.
+ */
 export interface ResolveUiModuleRequest {
   readonly source_capability_ref: string;
   readonly projection_ref: string;
   readonly projection_input: JsonObject;
-  readonly trace_id: string;
-  readonly request_id: string;
 }
 
+/** Exact V0117 runtime_result payload. */
 export interface ResolveUiModuleResponse {
-  readonly outcome_type: "response";
   readonly ui_module_artifact: UiModuleArtifact;
-  readonly evidence_ref: string;
-  readonly receipt_ref: string;
-  readonly trace_id: string;
-  readonly request_id: string;
 }
-
-export type ResolveUiModuleOutcome = ResolveUiModuleResponse | StableErrorOutcome;
