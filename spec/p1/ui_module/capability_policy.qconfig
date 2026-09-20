@@ -1,5 +1,5 @@
-capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117
-capability_contract_hash: sha256:f140c539648338fe408fe60aa7e84e8e41bcae8583aa9150f7a5ba3e6a222b01
+capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0120
+capability_contract_hash: sha256:107689009664b298b97dac8bc8d453181ef710d60c759bb0f3ed2374d21ed478
 runtime_contract_ref: Q.SS.STD.P0.CONTRACT.RUNTIME_CORE@V0134
 fixed_skeleton_mutation_forbidden: true
 extra_operation_file_forbidden_by_default: true
@@ -16,6 +16,12 @@ invariants:
 - An executable source Business action binding requires exact source Capability Contract ref/hash plus exact External Provider Surface ref/hash, and the bound source Interface must be contained in that exact provider surface.
 - Every exact source request-field occurrence carries exactly one valid x_q_field_semantics classification; BUSINESS_REFERENCE and TEMPORAL semantics are projected without suffix, field-name, runtime-value or renderer inference.
 - ui_module_artifact.logic_projection completely covers exact source operational_relations state machines transitions permissions actors and rule bindings without reclassification or omission.
+- Every request control preserves the exact source x_q_field_semantics variability_class; GENERAL emits null instance_variable_ref and INSTANCE preserves one exact source instance_variable_ref that resolves exactly once to VALUE_PARAMETER.
+- UI_MODULE never resolves Capability Instance parameter policy provider port values and never converts an INSTANCE field into a GENERAL or user-editable field by inference.
+- POLICY_SELECTION PROVIDER_SELECTION and PORT_BINDING instance variables remain source semantic snapshot material only unless another exact source-owned request-field semantic binding exists; variable kind alone never creates a request control.
+- UI_MODULE preserves P0-P4 dynamic-binding eligibility only as source semantics and never resolves target Stage Stage role Skeleton template token Capability Instance value or materialization connection evidence.
+- Source Capability successor re-projection reuses a projection derivation only when every declared projection-driving input is exactly equal; unresolved locality falls back to full deterministic recomputation.
+- Any incremental re-projection result must be canonically identical to full recomputation under the same exact successor source inputs or fail closed.
 persistence_requirements:
   owner_local_persistence_required: false
   database_objects_owned_by_capability: false
