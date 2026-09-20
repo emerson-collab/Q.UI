@@ -2,8 +2,8 @@ import { createHash } from "node:crypto";
 import { StableRuntimeError, deep_freeze } from "../../../p0/runtime_contract.ts";
 
 export type JsonObject = Readonly<Record<string, unknown>>;
-export const CAPABILITY_CONTRACT_REF = "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117" as const;
-export const CAPABILITY_CONTRACT_HASH = "sha256:f140c539648338fe408fe60aa7e84e8e41bcae8583aa9150f7a5ba3e6a222b01" as const;
+export const CAPABILITY_CONTRACT_REF = "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0120" as const;
+export const CAPABILITY_CONTRACT_HASH = "sha256:107689009664b298b97dac8bc8d453181ef710d60c759bb0f3ed2374d21ed478" as const;
 export const OPERATION_REF = `${CAPABILITY_CONTRACT_REF}#/operations/resolve_ui_module` as const;
 export const SEMANTIC_MODEL_VERSION = "Q_UI_MODULE_SEMANTIC_MODEL_V6" as const;
 
@@ -546,6 +546,207 @@ function assertTemplateConformsToSchema(
   }
 }
 
+type SourceVariabilityClosure = Readonly<{
+  mode: "NONE" | "DECLARED" | "LEGACY_ABSENT";
+  by_ref: ReadonlyMap<string, Readonly<Record<string, unknown>>>;
+}>;
+
+const INSTANCE_VARIABLE_ID = /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;
+const INSTANCE_VARIABLE_KINDS = new Set([
+  "VALUE_PARAMETER",
+  "POLICY_SELECTION",
+  "PROVIDER_SELECTION",
+  "PORT_BINDING",
+]);
+
+function sourceContractVersionNumber(sourceContractRef: string): number {
+  const match = /@V([0-9]{4})$/.exec(sourceContractRef);
+  if (match === null) {
+    fail(
+      "UI_MODULE_SOURCE_CAPABILITY_LINEAGE_UNRESOLVED",
+      "source_capability_contract_ref must be an exact Vdddd Contract ref",
+    );
+  }
+  return Number(match[1]);
+}
+
+function validateInstanceVariability(
+  source: Record<string, unknown>,
+  sourceContractRef: string,
+): SourceVariabilityClosure {
+  const raw = source.instance_variability;
+  if (raw === undefined || raw === null) {
+    if (sourceContractVersionNumber(sourceContractRef) >= 113) {
+      fail(
+        "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID",
+        "source Capability Contract V0113 or later must declare instance_variability",
+      );
+    }
+    return Object.freeze({
+      mode: "LEGACY_ABSENT" as const,
+      by_ref: new Map<string, Readonly<Record<string, unknown>>>(),
+    });
+  }
+
+  const section = objectValue(
+    raw,
+    "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID",
+    "source_capability_semantic_projection.instance_variability",
+  );
+  const mode = stringValue(
+    section.mode,
+    "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID",
+    "source_capability_semantic_projection.instance_variability.mode",
+  );
+  if (mode !== "NONE" && mode !== "DECLARED") {
+    fail(
+      "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID",
+      "instance_variability.mode must be NONE or DECLARED",
+    );
+  }
+
+  const entries = arrayValue(
+    section.instance_variables,
+    "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID",
+    "source_capability_semantic_projection.instance_variability.instance_variables",
+  );
+  if (mode === "NONE" && entries.length !== 0) {
+    fail(
+      "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID",
+      "instance_variability NONE requires an empty instance_variables catalog",
+    );
+  }
+  if (mode === "DECLARED" && entries.length === 0) {
+    fail(
+      "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID",
+      "instance_variability DECLARED requires a non-empty instance_variables catalog",
+    );
+  }
+
+  const byRef = new Map<string, Readonly<Record<string, unknown>>>();
+  const ids = new Set<string>();
+  for (let index = 0; index < entries.length; index += 1) {
+    const field = `source_capability_semantic_projection.instance_variability.instance_variables[${index}]`;
+    const entry = objectValue(entries[index], "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID", field);
+    const ref = stringValue(
+      entry.instance_variable_ref,
+      "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID",
+      `${field}.instance_variable_ref`,
+    );
+    const id = stringValue(
+      entry.instance_variable_id,
+      "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID",
+      `${field}.instance_variable_id`,
+    );
+    if (!INSTANCE_VARIABLE_ID.test(id)) {
+      fail("UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID", `${field}.instance_variable_id is invalid`);
+    }
+    const expectedRef = `${sourceContractRef}#/instance_variability/instance_variables/${id}`;
+    if (ref !== expectedRef) {
+      fail(
+        "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID",
+        `${field}.instance_variable_ref must equal the exact owner-local ref ${expectedRef}`,
+      );
+    }
+
+    const kind = stringValue(
+      entry.variable_kind,
+      "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID",
+      `${field}.variable_kind`,
+    );
+    if (!INSTANCE_VARIABLE_KINDS.has(kind)) {
+      fail("UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID", `${field}.variable_kind is invalid`);
+    }
+    booleanValue(
+      entry.required,
+      "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID",
+      `${field}.required`,
+    );
+    stringValue(
+      entry.description,
+      "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID",
+      `${field}.description`,
+    );
+    objectValue(
+      entry.projection_contract,
+      "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID",
+      `${field}.projection_contract`,
+    );
+
+    if (byRef.has(ref) || ids.has(id)) {
+      fail(
+        "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID",
+        `${field} duplicates an instance variable ref or id`,
+      );
+    }
+    byRef.set(ref, entry);
+    ids.add(id);
+  }
+
+  return Object.freeze({
+    mode: mode as "NONE" | "DECLARED",
+    by_ref: byRef,
+  });
+}
+
+function resolveRequestFieldVariability(
+  semantics: Record<string, unknown>,
+  variability: SourceVariabilityClosure,
+  field: string,
+): Readonly<{ variability_class: "GENERAL" | "INSTANCE"; instance_variable_ref: string | null }> {
+  const variabilityClass = stringValue(
+    semantics.variability_class,
+    "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
+    `${field}.x_q_field_semantics.variability_class`,
+  );
+  if (variabilityClass === "GENERAL") {
+    if (semantics.instance_variable_ref !== undefined && semantics.instance_variable_ref !== null) {
+      fail(
+        "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
+        `${field} GENERAL variability forbids instance_variable_ref`,
+      );
+    }
+    return Object.freeze({ variability_class: "GENERAL", instance_variable_ref: null });
+  }
+
+  if (variabilityClass !== "INSTANCE") {
+    fail(
+      "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
+      `${field}.x_q_field_semantics.variability_class must be GENERAL or INSTANCE`,
+    );
+  }
+
+  const instanceVariableRef = stringValue(
+    semantics.instance_variable_ref,
+    "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
+    `${field}.x_q_field_semantics.instance_variable_ref`,
+  );
+  if (variability.mode !== "DECLARED") {
+    fail(
+      "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
+      `${field} INSTANCE variability requires source instance_variability mode DECLARED`,
+    );
+  }
+  const variable = variability.by_ref.get(instanceVariableRef);
+  if (variable === undefined) {
+    fail(
+      "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
+      `${field}.instance_variable_ref does not resolve exactly once in source instance_variability`,
+    );
+  }
+  if (variable.variable_kind !== "VALUE_PARAMETER") {
+    fail(
+      "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
+      `${field}.instance_variable_ref must resolve to VALUE_PARAMETER`,
+    );
+  }
+
+  return Object.freeze({
+    variability_class: "INSTANCE",
+    instance_variable_ref: instanceVariableRef,
+  });
+}
+
 function fieldSemantics(descriptor: Record<string, unknown>, field: string): Record<string, unknown> {
   const semantics = objectValue(
     descriptor.x_q_field_semantics,
@@ -1027,6 +1228,7 @@ function requestControls(
   sourceContractRef: string,
   operationRef: string,
   requestContractRef: string,
+  variability: SourceVariabilityClosure,
 ): readonly JsonObject[] {
   if (schema.type !== "object") fail("UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS", `${requestContractRef}.schema.type must be object`);
   const properties = objectValue(schema.properties, "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS", `${requestContractRef}.schema.properties`);
@@ -1043,6 +1245,7 @@ function requestControls(
     const field = `${requestContractRef}.schema.properties.${fieldName}`;
     const descriptor = objectValue(raw, "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS", field);
     const semantics = fieldSemantics(descriptor, field);
+    const fieldVariability = resolveRequestFieldVariability(semantics, variability, field);
     const semanticKind = semantics.semantic_kind as string;
     const structuralSchema = ownerLocalSchemaShape(
       descriptor,
@@ -1093,6 +1296,8 @@ function requestControls(
       field_order: index,
       reference_binding: referenceBinding,
       temporal_binding: temporalBinding,
+      variability_class: fieldVariability.variability_class,
+      instance_variable_ref: fieldVariability.instance_variable_ref,
     });
   });
   return Object.freeze(controls);
@@ -1422,6 +1627,7 @@ export async function handler(input: unknown): Promise<Readonly<Record<string, u
       `source_capability_semantic_projection.${key}`,
     );
   }
+  const instanceVariability = validateInstanceVariability(source, sourceContractRef);
 
   const identity = source.identity as Record<string, unknown>;
   if (
@@ -1540,6 +1746,7 @@ export async function handler(input: unknown): Promise<Readonly<Record<string, u
         sourceContractRef,
         operationRef,
         requestContractRef,
+        instanceVariability,
       );
       const views = responseViews(
         contractSchema(responseContract, responseContractRef),
