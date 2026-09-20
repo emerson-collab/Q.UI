@@ -8,7 +8,7 @@ function projectionInput() {
   const requestRef = `${contractRef}#/contracts/create_request`;
   const responseRef = `${contractRef}#/contracts/create_response`;
   const stableErrorRef = `${contractRef}#/stable_errors/create_example`;
-  const outcomeRef = "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0179#/outcome_contracts/call_outcome";
+  const outcomeRef = "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0181#/outcome_contracts/call_outcome";
   const interfaceRef = `${contractRef}#/interfaces/example_create_invoke`;
   const operationRef = `${contractRef}#/operations/create_example`;
   const capabilityRef = "Q.TEST.CAPABILITY.EXAMPLE@V0100";
@@ -54,16 +54,17 @@ function projectionInput() {
                 name: {
                   type: "string",
                   minLength: 1,
-                  x_q_field_semantics: { semantic_kind: "PLAIN_VALUE" },
+                  x_q_field_semantics: { semantic_kind: "PLAIN_VALUE", variability_class: "GENERAL" },
                 },
                 priority: {
                   enum: ["HIGH", "LOW"],
-                  x_q_field_semantics: { semantic_kind: "PLAIN_VALUE" },
+                  x_q_field_semantics: { semantic_kind: "PLAIN_VALUE", variability_class: "GENERAL" },
                 },
                 external_ref: {
                   type: "string",
                   x_q_field_semantics: {
                     semantic_kind: "BUSINESS_REFERENCE",
+                    variability_class: "GENERAL",
                     reference_owner_mode: "EXTERNAL_OPAQUE",
                     resolution_mode: "OPAQUE_MANUAL",
                     selection_cardinality: "ONE",
@@ -75,6 +76,7 @@ function projectionInput() {
                   format: "date-time",
                   x_q_field_semantics: {
                     semantic_kind: "TEMPORAL",
+                    variability_class: "GENERAL",
                     temporal_kind: "DATE_TIME",
                   },
                 },
@@ -120,6 +122,7 @@ function projectionInput() {
           }],
         },
         rule_bindings: { mode: "NONE", bindings: [] },
+        instance_variability: { mode: "NONE", instance_variables: [] },
       },
     },
   };
@@ -137,6 +140,7 @@ function selfReferenceInput() {
   const readResponseRef = `${contractRef}#/contracts/read_example_response`;
   const referenceSemantics = {
     semantic_kind: "BUSINESS_REFERENCE",
+    variability_class: "GENERAL",
     reference_owner_mode: "SELF",
     reference_owner_ref: contractRef,
     resolution_mode: "EXACT_READ",
@@ -259,13 +263,13 @@ function enumerableSelfReferenceInput() {
           type: "object",
           additionalProperties: false,
           properties: {},
-          x_q_field_semantics: { semantic_kind: "PLAIN_VALUE" },
+          x_q_field_semantics: { semantic_kind: "PLAIN_VALUE", variability_class: "GENERAL" },
         },
         limit: {
           type: "integer",
           minimum: 1,
           maximum: 100,
-          x_q_field_semantics: { semantic_kind: "PLAIN_VALUE" },
+          x_q_field_semantics: { semantic_kind: "PLAIN_VALUE", variability_class: "GENERAL" },
         },
       },
       required: ["filters"],
@@ -298,7 +302,7 @@ function enumerableSelfReferenceInput() {
   return input;
 }
 
-test("V0117 emits V6 closed semantic model with exact source lineage", async () => {
+test("V0120 emits V6 closed semantic model with exact source lineage", async () => {
   const result = await handler(projectionInput());
   const artifact = result.ui_module_artifact as Record<string, any>;
   assert.equal(artifact.semantic_model.semantic_model_version, SEMANTIC_MODEL_VERSION);
@@ -322,7 +326,7 @@ test("V0117 emits V6 closed semantic model with exact source lineage", async () 
   assert.equal(artifact.source_lineage.source_capability_ref, projectionInput().source_capability_ref);
 });
 
-test("V0117 preserves internal interfaces but only provider interfaces become actions", async () => {
+test("V0120 preserves internal interfaces but only provider interfaces become actions", async () => {
   const input: any = projectionInput();
   input.projection_input.source_capability_semantic_projection.external_provider_surface = { provider_interface_refs: [] };
   const result = await handler(input);
@@ -332,14 +336,14 @@ test("V0117 preserves internal interfaces but only provider interfaces become ac
   assert.equal(artifact.action_bindings.length, 0);
 });
 
-test("V0117 reads current Capability Contract input_schema/runtime_result_schema carriers", async () => {
+test("V0120 reads current Capability Contract input_schema/runtime_result_schema carriers", async () => {
   const result = await handler(projectionInput());
   const artifact = result.ui_module_artifact as Record<string, any>;
   assert.equal(artifact.action_bindings[0].request_controls.length, 4);
   assert.equal(artifact.action_bindings[0].response_views.length, 2);
 });
 
-test("V0117 normalizes exact single-segment source reference paths and resolves owner-local type_closure refs", async () => {
+test("V0120 normalizes exact single-segment source reference paths and resolves owner-local type_closure refs", async () => {
   const result = await handler(selfReferenceInput());
   const artifact = result.ui_module_artifact as Record<string, any>;
   const reference = artifact.action_bindings[0].request_controls.find((x: any) => x.source_field_path[0] === "external_ref").reference_binding;
@@ -351,7 +355,7 @@ test("V0117 normalizes exact single-segment source reference paths and resolves 
   assert.equal(artifact.semantic_model.operation_projections.length, 2);
 });
 
-test("V0117 validates ENUMERABLE_LOOKUP template against the exact lookup request schema", async () => {
+test("V0120 validates ENUMERABLE_LOOKUP template against the exact lookup request schema", async () => {
   const result = await handler(enumerableSelfReferenceInput());
   const artifact = result.ui_module_artifact as Record<string, any>;
   const reference = artifact.action_bindings[0].request_controls.find((x: any) => x.source_field_path[0] === "external_ref").reference_binding;
@@ -360,7 +364,7 @@ test("V0117 validates ENUMERABLE_LOOKUP template against the exact lookup reques
   assert.deepEqual(reference.lookup_request_input_template, { filters: {} });
 });
 
-test("V0117 fails closed when ENUMERABLE_LOOKUP template violates the exact lookup request schema", async () => {
+test("V0120 fails closed when ENUMERABLE_LOOKUP template violates the exact lookup request schema", async () => {
   const input: any = enumerableSelfReferenceInput();
   input.projection_input.source_capability_semantic_projection.contracts.create_request
     .input_schema.properties.external_ref.x_q_field_semantics.lookup_request_input_template = { limit: 10 };
@@ -370,7 +374,7 @@ test("V0117 fails closed when ENUMERABLE_LOOKUP template violates the exact look
   );
 });
 
-test("V0117 fails closed when SELF reference read_result_object_path is unresolved", async () => {
+test("V0120 fails closed when SELF reference read_result_object_path is unresolved", async () => {
   const input: any = selfReferenceInput();
   input.projection_input.source_capability_semantic_projection.contracts.create_request
     .input_schema.properties.external_ref.x_q_field_semantics.read_result_object_path = "missing";
@@ -380,7 +384,7 @@ test("V0117 fails closed when SELF reference read_result_object_path is unresolv
   );
 });
 
-test("V0117 fails closed when SELF reference identity schema is incompatible", async () => {
+test("V0120 fails closed when SELF reference identity schema is incompatible", async () => {
   const input: any = selfReferenceInput();
   input.projection_input.source_capability_semantic_projection.type_closure.schemas.example
     .properties.example_ref.type = "integer";
@@ -390,7 +394,7 @@ test("V0117 fails closed when SELF reference identity schema is incompatible", a
   );
 });
 
-test("V0117 fails closed when request field semantics are missing", async () => {
+test("V0120 fails closed when request field semantics are missing", async () => {
   const input: any = projectionInput();
   delete input.projection_input.source_capability_semantic_projection.contracts.create_request.input_schema.properties.name.x_q_field_semantics;
   await assert.rejects(
@@ -399,7 +403,7 @@ test("V0117 fails closed when request field semantics are missing", async () => 
   );
 });
 
-test("V0117 fails closed when temporal annotation conflicts with exact schema format", async () => {
+test("V0120 fails closed when temporal annotation conflicts with exact schema format", async () => {
   const input: any = projectionInput();
   input.projection_input.source_capability_semantic_projection.contracts.create_request.input_schema.properties.due_at.format = "date";
   await assert.rejects(
@@ -408,14 +412,14 @@ test("V0117 fails closed when temporal annotation conflicts with exact schema fo
   );
 });
 
-test("V0117 fails closed when an owner-local referenced temporal schema is classified PLAIN_VALUE", async () => {
+test("V0120 fails closed when an owner-local referenced temporal schema is classified PLAIN_VALUE", async () => {
   const input: any = projectionInput();
   const source = input.projection_input.source_capability_semantic_projection;
   const contractRef = input.projection_input.source_capability_contract_ref;
   source.type_closure.schemas.temporal_value = { type: "string", format: "date-time" };
   source.contracts.create_request.input_schema.properties.due_at = {
     $ref: `${contractRef}#/type_closure/schemas/temporal_value`,
-    x_q_field_semantics: { semantic_kind: "PLAIN_VALUE" },
+    x_q_field_semantics: { semantic_kind: "PLAIN_VALUE", variability_class: "GENERAL" },
   };
   await assert.rejects(
     () => handler(input),
@@ -423,7 +427,7 @@ test("V0117 fails closed when an owner-local referenced temporal schema is class
   );
 });
 
-test("V0117 artifact hash excludes logical identity but includes projection semantics", async () => {
+test("V0120 artifact hash excludes logical identity but includes projection semantics", async () => {
   const inputA: any = projectionInput();
   const a = (await handler(inputA)).ui_module_artifact as Record<string, any>;
   const inputB: any = projectionInput();
@@ -432,4 +436,177 @@ test("V0117 artifact hash excludes logical identity but includes projection sema
   assert.notEqual(a.content_hash, b.content_hash);
   assert.equal(a.ui_module_ref, a.content_hash);
   assert.equal(b.ui_module_ref, b.content_hash);
+});
+
+
+test("V0120 emits exact GENERAL variability on every ordinary request control", async () => {
+  const result = await handler(projectionInput());
+  const artifact = result.ui_module_artifact as Record<string, any>;
+  const controls = artifact.action_bindings[0].request_controls as Array<Record<string, unknown>>;
+  assert.ok(controls.length > 0);
+  for (const control of controls) {
+    assert.equal(control.variability_class, "GENERAL");
+    assert.equal(control.instance_variable_ref, null);
+  }
+});
+
+test("V0120 preserves one exact INSTANCE VALUE_PARAMETER binding without resolving an Instance value", async () => {
+  const input: any = projectionInput();
+  const source = input.projection_input.source_capability_semantic_projection;
+  const contractRef = input.projection_input.source_capability_contract_ref;
+  const instanceVariableRef = `${contractRef}#/instance_variability/instance_variables/name_value`;
+
+  source.instance_variability = {
+    mode: "DECLARED",
+    instance_variables: [{
+      instance_variable_ref: instanceVariableRef,
+      instance_variable_id: "name_value",
+      variable_kind: "VALUE_PARAMETER",
+      required: false,
+      description: "Exact request-bound name value",
+      projection_contract: {},
+    }],
+  };
+  source.contracts.create_request.input_schema.properties.name.x_q_field_semantics = {
+    semantic_kind: "PLAIN_VALUE",
+    variability_class: "INSTANCE",
+    instance_variable_ref: instanceVariableRef,
+  };
+
+  const result = await handler(input);
+  const artifact = result.ui_module_artifact as Record<string, any>;
+  const control = artifact.action_bindings[0].request_controls.find(
+    (item: any) => item.source_field_path[0] === "name",
+  );
+  assert.equal(control.variability_class, "INSTANCE");
+  assert.equal(control.instance_variable_ref, instanceVariableRef);
+  assert.equal(artifact.source_semantic_snapshot.instance_variability.mode, "DECLARED");
+  assert.equal("instance_value" in control, false);
+});
+
+test("V0120 rejects INSTANCE request fields whose variable kind is not VALUE_PARAMETER", async () => {
+  const input: any = projectionInput();
+  const source = input.projection_input.source_capability_semantic_projection;
+  const contractRef = input.projection_input.source_capability_contract_ref;
+  const instanceVariableRef = `${contractRef}#/instance_variability/instance_variables/name_policy`;
+
+  source.instance_variability = {
+    mode: "DECLARED",
+    instance_variables: [{
+      instance_variable_ref: instanceVariableRef,
+      instance_variable_id: "name_policy",
+      variable_kind: "POLICY_SELECTION",
+      required: false,
+      description: "Non-request policy selection",
+      projection_contract: {},
+    }],
+  };
+  source.contracts.create_request.input_schema.properties.name.x_q_field_semantics = {
+    semantic_kind: "PLAIN_VALUE",
+    variability_class: "INSTANCE",
+    instance_variable_ref: instanceVariableRef,
+  };
+
+  await assert.rejects(
+    () => handler(input),
+    (error: unknown) => error instanceof StableRuntimeError
+      && error.code === "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
+  );
+});
+
+test("V0120 rejects INSTANCE request fields when source instance_variability is NONE", async () => {
+  const input: any = projectionInput();
+  input.projection_input.source_capability_semantic_projection.contracts.create_request
+    .input_schema.properties.name.x_q_field_semantics = {
+      semantic_kind: "PLAIN_VALUE",
+      variability_class: "INSTANCE",
+      instance_variable_ref: "Q.TEST.CONTRACT.CAPABILITY.EXAMPLE@V0100#/instance_variability/instance_variables/name_value",
+    };
+
+  await assert.rejects(
+    () => handler(input),
+    (error: unknown) => error instanceof StableRuntimeError
+      && error.code === "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
+  );
+});
+
+test("V0120 rejects GENERAL request fields that carry instance_variable_ref", async () => {
+  const input: any = projectionInput();
+  input.projection_input.source_capability_semantic_projection.contracts.create_request
+    .input_schema.properties.name.x_q_field_semantics = {
+      semantic_kind: "PLAIN_VALUE",
+      variability_class: "GENERAL",
+      instance_variable_ref: "forbidden",
+    };
+
+  await assert.rejects(
+    () => handler(input),
+    (error: unknown) => error instanceof StableRuntimeError
+      && error.code === "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
+  );
+});
+
+test("V0120 rejects duplicate source instance variable identities", async () => {
+  const input: any = projectionInput();
+  const source = input.projection_input.source_capability_semantic_projection;
+  const contractRef = input.projection_input.source_capability_contract_ref;
+  const instanceVariableRef = `${contractRef}#/instance_variability/instance_variables/name_value`;
+  const variable = {
+    instance_variable_ref: instanceVariableRef,
+    instance_variable_id: "name_value",
+    variable_kind: "VALUE_PARAMETER",
+    required: false,
+    description: "Exact request-bound name value",
+    projection_contract: {},
+  };
+  source.instance_variability = {
+    mode: "DECLARED",
+    instance_variables: [variable, { ...variable }],
+  };
+
+  await assert.rejects(
+    () => handler(input),
+    (error: unknown) => error instanceof StableRuntimeError
+      && error.code === "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID",
+  );
+});
+
+test("V0120 does not synthesize controls from non-request policy/provider/port instance variables", async () => {
+  const input: any = projectionInput();
+  const source = input.projection_input.source_capability_semantic_projection;
+  const contractRef = input.projection_input.source_capability_contract_ref;
+  source.instance_variability = {
+    mode: "DECLARED",
+    instance_variables: [
+      {
+        instance_variable_ref: `${contractRef}#/instance_variability/instance_variables/policy_choice`,
+        instance_variable_id: "policy_choice",
+        variable_kind: "POLICY_SELECTION",
+        required: false,
+        description: "Policy selection preserved only as source semantics",
+        projection_contract: {},
+      },
+      {
+        instance_variable_ref: `${contractRef}#/instance_variability/instance_variables/provider_choice`,
+        instance_variable_id: "provider_choice",
+        variable_kind: "PROVIDER_SELECTION",
+        required: false,
+        description: "Provider selection preserved only as source semantics",
+        projection_contract: {},
+      },
+      {
+        instance_variable_ref: `${contractRef}#/instance_variability/instance_variables/port_choice`,
+        instance_variable_id: "port_choice",
+        variable_kind: "PORT_BINDING",
+        required: false,
+        description: "Port binding preserved only as source semantics",
+        projection_contract: {},
+      },
+    ],
+  };
+
+  const result = await handler(input);
+  const artifact = result.ui_module_artifact as Record<string, any>;
+  assert.equal(artifact.action_bindings[0].request_controls.length, 4);
+  assert.equal(artifact.source_semantic_snapshot.instance_variability.instance_variables.length, 3);
 });
