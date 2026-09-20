@@ -25,6 +25,18 @@ projection:
       stable_code: ACTIVATE_MOUNT
       owner_capability_id: external_capability_mounting
       catalog_fragment_ref: Q.SS.STD.P2.CONTRACT.CROSS_DOMAIN_REALIZATION@V0124#/operation_catalog/consumer/external_capability_mounting
+    create_mount_set:
+      operation_id: create_mount_set
+      canonical_name: create_mount_set
+      stable_code: CREATE_MOUNT_SET
+      owner_capability_id: external_capability_mounting
+      catalog_fragment_ref: Q.SS.STD.P2.CONTRACT.CROSS_DOMAIN_REALIZATION@V0124#/operation_catalog/consumer/external_capability_mounting
+    activate_mount_set:
+      operation_id: activate_mount_set
+      canonical_name: activate_mount_set
+      stable_code: ACTIVATE_MOUNT_SET
+      owner_capability_id: external_capability_mounting
+      catalog_fragment_ref: Q.SS.STD.P2.CONTRACT.CROSS_DOMAIN_REALIZATION@V0124#/operation_catalog/consumer/external_capability_mounting
     rollback_mount:
       operation_id: rollback_mount
       canonical_name: rollback_mount
