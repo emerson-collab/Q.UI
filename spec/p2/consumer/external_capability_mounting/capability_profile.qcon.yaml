@@ -31,6 +31,18 @@ operations:
   catalog_fragment_ref: Q.SS.STD.P2.CONTRACT.CROSS_DOMAIN_REALIZATION@V0124#/operation_catalog/consumer/external_capability_mounting
   source_leaf: src/p2/consumer/external_capability_mounting/activate_mount/handler.ts
   test_leaf: tests/p2/consumer/external_capability_mounting/activate_mount/handler.test.ts
+- operation_id: create_mount_set
+  canonical_name: create_mount_set
+  stable_code: CREATE_MOUNT_SET
+  catalog_fragment_ref: Q.SS.STD.P2.CONTRACT.CROSS_DOMAIN_REALIZATION@V0124#/operation_catalog/consumer/external_capability_mounting
+  source_leaf: src/p2/consumer/external_capability_mounting/create_mount_set/handler.ts
+  test_leaf: tests/p2/consumer/external_capability_mounting/create_mount_set/handler.test.ts
+- operation_id: activate_mount_set
+  canonical_name: activate_mount_set
+  stable_code: ACTIVATE_MOUNT_SET
+  catalog_fragment_ref: Q.SS.STD.P2.CONTRACT.CROSS_DOMAIN_REALIZATION@V0124#/operation_catalog/consumer/external_capability_mounting
+  source_leaf: src/p2/consumer/external_capability_mounting/activate_mount_set/handler.ts
+  test_leaf: tests/p2/consumer/external_capability_mounting/activate_mount_set/handler.test.ts
 - operation_id: rollback_mount
   canonical_name: rollback_mount
   stable_code: ROLLBACK_MOUNT
