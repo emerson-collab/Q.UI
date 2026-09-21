@@ -1,5 +1,5 @@
 import { deep_freeze } from "../../p0/runtime_contract.ts";
 
-// The fixed P1 V0181 framework owns no concrete business hook consumer.
-// Concrete Capability hook bindings remain exact owner-declared overlay material.
+// Q.Prompt V0106 declares no P1 business hooks. This fixed framework file is
+// present because it is part of the P1 V0182 physical projection.
 export const business_hook_consumers = deep_freeze([] as const);

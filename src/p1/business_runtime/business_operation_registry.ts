@@ -1,6 +1,8 @@
 import { StableRuntimeError, deep_freeze, exact_ref } from "../../p0/runtime_contract.ts";
+import type { RuntimeContext, RuntimeOperation } from "../../p0/runtime_contract.ts";
 
-export type BusinessOperationHandler = (input: unknown) => unknown | Promise<unknown>;
+export type BusinessOperationHandler = RuntimeOperation<unknown, unknown>;
+export type BusinessEventInterfaceKind = "EVENT_PUBLISH" | "EVENT_CONSUME";
 
 export interface BusinessRegistryEntry {
   readonly object_ref: string;
@@ -8,37 +10,60 @@ export interface BusinessRegistryEntry {
   readonly registry_rule: unknown;
 }
 
-export type BusinessEventKind = "EVENT_PUBLISH" | "EVENT_CONSUME";
-export type BusinessEventMethodRef = "publish_business_event" | "consume_business_event";
-
 export interface BusinessEventInterfaceBinding {
   readonly capability_contract_ref: string;
   readonly interface_ref: string;
   readonly operation_ref: string;
   readonly surface: "EVENT";
-  readonly kind: BusinessEventKind;
-  readonly method_ref: BusinessEventMethodRef;
+  readonly kind: BusinessEventInterfaceKind;
+  /** P1 framework EVENT method identity declared by the exact Capability Interface. */
+  readonly method_ref: "publish_business_event" | "consume_business_event";
 }
 
-export interface BusinessEventFrameworkRequest {
-  readonly subject_ref: string;
+export interface BusinessEventPublishRequest {
+  readonly interface_ref: string;
+  readonly operation_ref: string;
   readonly input: unknown;
-  readonly runtime_context: unknown;
-  readonly trace_id: string;
-  readonly request_id: string;
+  readonly runtime_context: RuntimeContext;
 }
 
-export interface BusinessEventTransport {
-  publish(
-    binding: BusinessEventInterfaceBinding,
-    request: BusinessEventFrameworkRequest,
-    operation_result: unknown,
-  ): void | Promise<void>;
+export interface BusinessEventPublisher {
+  publish(request: Readonly<BusinessEventPublishRequest>): unknown | Promise<unknown>;
 }
 
 const operations = new Map<string, BusinessOperationHandler>();
 const business_objects = new Map<string, BusinessRegistryEntry>();
 const event_interfaces = new Map<string, BusinessEventInterfaceBinding>();
+
+function nonEmptyString(value: string, field: string): string {
+  if (value.length === 0) {
+    throw new StableRuntimeError("P1_EVENT_BINDING_INVALID", `${field} must be a non-empty string`);
+  }
+  return value;
+}
+
+function exactCapabilityMember(
+  capabilityContractRef: string,
+  memberRef: string,
+  memberKind: "operations" | "interfaces",
+  field: string,
+): string {
+  if (!exact_ref(capabilityContractRef) || capabilityContractRef.includes("#/")) {
+    throw new StableRuntimeError(
+      "P1_EVENT_BINDING_INVALID",
+      "capability_contract_ref must be an exact versioned Capability Contract ref",
+    );
+  }
+  const exact = nonEmptyString(memberRef, field);
+  if (!exact_ref(exact) || !exact.startsWith(`${capabilityContractRef}#/${memberKind}/`)) {
+    throw new StableRuntimeError(
+      "P1_EVENT_BINDING_INVALID",
+      `${field} must be an exact member of capability_contract_ref`,
+    );
+  }
+  return exact;
+}
+
 
 export function register_business_operation(operation_ref: string, handler: BusinessOperationHandler): void {
   const existing = operations.get(operation_ref);
@@ -50,114 +75,199 @@ export function register_business_operation(operation_ref: string, handler: Busi
 
 export function resolve_business_operation(operation_ref: string): BusinessOperationHandler {
   const handler = operations.get(operation_ref);
-  if (handler === undefined) throw new StableRuntimeError("P1_OPERATION_NOT_REGISTERED", "Operation ref is not registered");
+  if (handler === undefined) {
+    throw new StableRuntimeError("P1_OPERATION_NOT_REGISTERED", "Operation ref is not registered");
+  }
   return handler;
+}
+
+export async function invoke_business_operation(
+  operation_ref: string,
+  input: unknown,
+  runtime_context: RuntimeContext,
+): Promise<unknown> {
+  return await resolve_business_operation(operation_ref)(input, runtime_context);
 }
 
 export function registered_business_operation_refs(): readonly string[] {
   return deep_freeze([...operations.keys()].sort());
 }
 
-function assert_event_binding(binding: BusinessEventInterfaceBinding): void {
-  if (
-    !exact_ref(binding.capability_contract_ref)
-    || !exact_ref(binding.interface_ref)
-    || !exact_ref(binding.operation_ref)
-  ) {
-    throw new StableRuntimeError("P1_EVENT_BINDING_INVALID", "EVENT binding refs must be exact versioned refs");
+/**
+ * Registers one exact concrete Capability EVENT Interface-to-Operation binding.
+ *
+ * The concrete Capability Contract remains semantic authority. Runtime transport,
+ * caller input, channel identity, and source-code discovery are never allowed to
+ * select or override the bound Operation.
+ */
+export function register_business_event_interface(
+  binding: Readonly<BusinessEventInterfaceBinding>,
+): BusinessEventInterfaceBinding {
+  const allowedBindingKeys = new Set([
+    "capability_contract_ref",
+    "interface_ref",
+    "operation_ref",
+    "surface",
+    "kind",
+    "method_ref",
+  ]);
+  const unknownBindingKeys = Object.keys(binding).filter((key) => !allowedBindingKeys.has(key));
+  if (unknownBindingKeys.length > 0) {
+    throw new StableRuntimeError(
+      "P1_EVENT_BINDING_INVALID",
+      "EVENT binding contains undeclared fields",
+      { unknown_binding_keys: unknownBindingKeys.sort() },
+    );
   }
-  if (!binding.interface_ref.startsWith(`${binding.capability_contract_ref}#/interfaces/`)) {
-    throw new StableRuntimeError("P1_EVENT_BINDING_INVALID", "EVENT Interface must be an exact member of its Capability Contract");
-  }
-  if (!binding.operation_ref.startsWith(`${binding.capability_contract_ref}#/operations/`)) {
-    throw new StableRuntimeError("P1_EVENT_BINDING_INVALID", "EVENT Operation must be an exact member of its Capability Contract");
-  }
+  const capabilityContractRef = nonEmptyString(
+    binding.capability_contract_ref,
+    "capability_contract_ref",
+  );
+  const interfaceRef = exactCapabilityMember(
+    capabilityContractRef,
+    binding.interface_ref,
+    "interfaces",
+    "interface_ref",
+  );
+  const operationRef = exactCapabilityMember(
+    capabilityContractRef,
+    binding.operation_ref,
+    "operations",
+    "operation_ref",
+  );
   if (binding.surface !== "EVENT") {
-    throw new StableRuntimeError("P1_EVENT_BINDING_INVALID", "EVENT binding surface must be EVENT");
+    throw new StableRuntimeError("P1_EVENT_BINDING_INVALID", "EVENT binding surface must equal EVENT");
   }
-  const expectedMethod = binding.kind === "EVENT_PUBLISH"
-    ? "publish_business_event"
-    : binding.kind === "EVENT_CONSUME"
-      ? "consume_business_event"
-      : null;
-  if (expectedMethod === null || binding.method_ref !== expectedMethod) {
-    throw new StableRuntimeError("P1_EVENT_BINDING_INVALID", "EVENT kind and framework method_ref do not match");
+  const methodRef = nonEmptyString(binding.method_ref, "method_ref");
+  if (binding.kind !== "EVENT_PUBLISH" && binding.kind !== "EVENT_CONSUME") {
+    throw new StableRuntimeError(
+      "P1_EVENT_BINDING_INVALID",
+      "EVENT binding kind must be EVENT_PUBLISH or EVENT_CONSUME",
+    );
   }
-  resolve_business_operation(binding.operation_ref);
-}
+  const expectedMethodRef =
+    binding.kind === "EVENT_PUBLISH" ? "publish_business_event" : "consume_business_event";
+  if (methodRef !== expectedMethodRef) {
+    throw new StableRuntimeError(
+      "P1_EVENT_BINDING_INVALID",
+      `EVENT ${binding.kind} method_ref must equal ${expectedMethodRef}`,
+    );
+  }
 
-function same_event_binding(a: BusinessEventInterfaceBinding, b: BusinessEventInterfaceBinding): boolean {
-  return a.capability_contract_ref === b.capability_contract_ref
-    && a.interface_ref === b.interface_ref
-    && a.operation_ref === b.operation_ref
-    && a.surface === b.surface
-    && a.kind === b.kind
-    && a.method_ref === b.method_ref;
-}
+  const exactBinding = deep_freeze({
+    capability_contract_ref: capabilityContractRef,
+    interface_ref: interfaceRef,
+    operation_ref: operationRef,
+    surface: "EVENT",
+    kind: binding.kind,
+    method_ref: expectedMethodRef,
+  } satisfies BusinessEventInterfaceBinding);
 
-export function register_business_event_interface(binding: BusinessEventInterfaceBinding): void {
-  assert_event_binding(binding);
-  const frozen = deep_freeze({ ...binding });
-  const existing = event_interfaces.get(binding.interface_ref);
-  if (existing !== undefined && !same_event_binding(existing, frozen)) {
-    throw new StableRuntimeError("P1_EVENT_BINDING_CONFLICT", "EVENT Interface ref already has a different exact binding");
+  const existing = event_interfaces.get(interfaceRef);
+  if (existing !== undefined) {
+    if (
+      existing.capability_contract_ref !== exactBinding.capability_contract_ref
+      || existing.operation_ref !== exactBinding.operation_ref
+      || existing.kind !== exactBinding.kind
+      || existing.method_ref !== exactBinding.method_ref
+    ) {
+      throw new StableRuntimeError(
+        "P1_EVENT_INTERFACE_DUPLICATE",
+        "EVENT interface ref already has a different exact binding",
+      );
+    }
+    return existing;
   }
-  event_interfaces.set(binding.interface_ref, frozen);
+
+  event_interfaces.set(interfaceRef, exactBinding);
+  return exactBinding;
 }
 
 export function resolve_business_event_interface(
   interface_ref: string,
-  expected_kind: BusinessEventKind,
+  expected_kind?: BusinessEventInterfaceKind,
 ): BusinessEventInterfaceBinding {
   const binding = event_interfaces.get(interface_ref);
-  if (binding === undefined || binding.kind !== expected_kind) {
-    throw new StableRuntimeError("P1_EVENT_BINDING_NOT_REGISTERED", "Exact EVENT Interface binding is not registered for this kind");
+  if (binding === undefined) {
+    throw new StableRuntimeError(
+      "P1_EVENT_INTERFACE_NOT_REGISTERED",
+      "EVENT interface ref is not registered",
+    );
   }
-  assert_event_binding(binding);
+  if (expected_kind !== undefined && binding.kind !== expected_kind) {
+    throw new StableRuntimeError(
+      "P1_EVENT_INTERFACE_KIND_MISMATCH",
+      "EVENT interface kind does not match requested dispatch path",
+    );
+  }
   return binding;
 }
 
-function assert_event_request(request: BusinessEventFrameworkRequest): void {
-  for (const [field, value] of [
-    ["subject_ref", request.subject_ref],
-    ["trace_id", request.trace_id],
-    ["request_id", request.request_id],
-  ] as const) {
-    if (typeof value !== "string" || value.length === 0) {
-      throw new StableRuntimeError("P1_EVENT_REQUEST_INVALID", `${field} must be a non-empty string`);
-    }
-  }
-  if (request.runtime_context === null || typeof request.runtime_context !== "object") {
-    throw new StableRuntimeError("P1_EVENT_REQUEST_INVALID", "runtime_context must be an object");
-  }
-}
-
-export async function consume_business_event(
-  interface_ref: string,
-  request: BusinessEventFrameworkRequest,
-): Promise<unknown> {
-  assert_event_request(request);
-  const binding = resolve_business_event_interface(interface_ref, "EVENT_CONSUME");
-  const operation = resolve_business_operation(binding.operation_ref);
-  return await operation(request.input);
-}
-
-export async function publish_business_event(
-  interface_ref: string,
-  request: BusinessEventFrameworkRequest,
-  transport: BusinessEventTransport,
-): Promise<unknown> {
-  assert_event_request(request);
-  const binding = resolve_business_event_interface(interface_ref, "EVENT_PUBLISH");
-  const operation = resolve_business_operation(binding.operation_ref);
-  const operation_result = await operation(request.input);
-  await transport.publish(binding, request, operation_result);
-  return operation_result;
+export function registered_business_event_interface_refs(): readonly string[] {
+  return deep_freeze([...event_interfaces.keys()].sort());
 }
 
 /**
- * P1 V0181 REGISTRY realization.
- * The registry stores only exact static object_contract + registry_rule material.
+ * P1 EVENT_PUBLISH realization.
+ *
+ * The exact EVENT_PUBLISH Interface is preverified against its owning Operation.
+ * Publication occurs only after that Operation has produced its authoritative
+ * fact/finalized outcome. This method therefore does not execute the Operation;
+ * it delegates delivery to an injected non-semantic transport publisher.
+ */
+export async function publish_business_event(
+  interface_ref: string,
+  input: unknown,
+  runtime_context: RuntimeContext,
+  publisher: BusinessEventPublisher,
+): Promise<unknown> {
+  const binding = resolve_business_event_interface(interface_ref, "EVENT_PUBLISH");
+  if (runtime_context.operation_ref !== binding.operation_ref) {
+    throw new StableRuntimeError(
+      "P1_EVENT_RUNTIME_CONTEXT_OPERATION_MISMATCH",
+      "RuntimeContext operation_ref must equal the exact Operation bound by the EVENT_PUBLISH Interface",
+    );
+  }
+  return await publisher.publish(deep_freeze({
+    interface_ref: binding.interface_ref,
+    operation_ref: binding.operation_ref,
+    input,
+    runtime_context,
+  } satisfies BusinessEventPublishRequest));
+}
+
+/**
+ * P1 EVENT_CONSUME realization.
+ *
+ * Transport supplies the exact Interface identity plus opaque event input/context.
+ * The Operation identity is derived only from the preverified Interface binding;
+ * transport/caller Operation selection is ignored rather than treated as authority.
+ */
+export async function consume_business_event(
+  interface_ref: string,
+  input: unknown,
+  runtime_context: RuntimeContext,
+): Promise<unknown> {
+  const binding = resolve_business_event_interface(interface_ref, "EVENT_CONSUME");
+  const boundRuntimeContext = deep_freeze({
+    ...runtime_context,
+    stage_contract_ref: "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0182",
+    operation_ref: binding.operation_ref,
+  } satisfies RuntimeContext);
+
+  return await invoke_business_operation(
+    binding.operation_ref,
+    input,
+    boundRuntimeContext,
+  );
+}
+
+/**
+ * P1 REGISTRY_REGISTER realization.
+ *
+ * The registry stores only the exact static object_contract + registry_rule supplied by
+ * the governed Capability projection. It does not infer public interfaces, expand a
+ * provider surface, execute a business Operation, or derive any unresolved hash.
  */
 export function register_business_object(
   object_ref: string,
@@ -171,17 +281,27 @@ export function register_business_object(
     }
     return existing;
   }
-  const entry = deep_freeze({ object_ref, object_contract, registry_rule } satisfies BusinessRegistryEntry);
+
+  const entry = deep_freeze({
+    object_ref,
+    object_contract,
+    registry_rule,
+  } satisfies BusinessRegistryEntry);
+
   business_objects.set(object_ref, entry);
   return entry;
 }
 
+/** P1 REGISTRY_RESOLVE realization using the exact registered object_ref as resolution key. */
 export function resolve_business_object(resolution_key: string): BusinessRegistryEntry {
   const entry = business_objects.get(resolution_key);
-  if (entry === undefined) throw new Error("Business registry resolution key is not registered");
+  if (entry === undefined) {
+    throw new Error("Business registry resolution key is not registered");
+  }
   return entry;
 }
 
+/** P1 REGISTRY_LOOKUP realization; lookup is read-only and never invokes business Operations. */
 export function lookup_business_object(lookup_query: string): BusinessRegistryEntry | undefined {
   return business_objects.get(lookup_query);
 }
