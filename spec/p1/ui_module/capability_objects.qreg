@@ -1,19 +1,19 @@
 {
-  "capability_contract_hash": "sha256:f140c539648338fe408fe60aa7e84e8e41bcae8583aa9150f7a5ba3e6a222b01",
-  "capability_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117",
-  "capability_ref": "Q.UI.CAPABILITY.UI_MODULE@V0117",
+  "capability_contract_hash": "sha256:2c361c4d0fb7fafb2f3500ef64455c8213cdae0ded2ce6ca3bc513104d46fe4f",
+  "capability_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122",
+  "capability_ref": "Q.UI.CAPABILITY.UI_MODULE@V0122",
   "contracts": [
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/contracts/resolve_ui_module_request_contract",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/contracts/resolve_ui_module_response_contract",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/stable_errors/resolve_ui_module",
-    "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0179#/outcome_contracts/call_outcome"
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/contracts/resolve_ui_module_request_contract",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/contracts/resolve_ui_module_response_contract",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/stable_errors/resolve_ui_module",
+    "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0182#/outcome_contracts/call_outcome"
   ],
   "dependencies": [
     "Q.SS.STD.P0.CONTRACT.RUNTIME_CORE@V0134",
-    "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0179",
+    "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0182",
     "Q.SS.STD.META.CONTRACT.ARTIFACT@V0109",
     "Q.SS.STD.META.CONTRACT.CONTRACT@V0119",
-    "Q.SS.STD.META.CONTRACT.CAPABILITY_CONTRACT@V0112",
+    "Q.SS.STD.META.CONTRACT.CAPABILITY_CONTRACT@V0117",
     "Q.SS.STD.META.CONTRACT.SYSTEM_OBJECT_NAMING.MIN@V0112",
     "Q.SS.STD.META.CONTRACT.DIMENSION_INTERFACE_CLASSIFICATION@V0114",
     "Q.SS.STD.META.CONTRACT.SURFACE_LAYER_MOUNT@V0114",
@@ -21,13 +21,13 @@
     "Q.SS.STD.META.CONTRACT.SYSTEM_INTERFACE@V0107",
     "Q.SS.STD.META.CONTRACT.CONNECTION_MODE@V0107",
     "Q.SS.STD.META.CONTRACT.PAYLOAD_SCHEMA_BOUNDARY@V0101",
-    "Q.SS.STD.META.CONTRACT.REPOSITORY_DIRECTORY_SKELETON@V0138"
+    "Q.SS.STD.META.CONTRACT.REPOSITORY_DIRECTORY_SKELETON@V0145"
   ],
   "interfaces": [
     {
-      "interface_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/interfaces/ui_module_resolution_invoke",
-      "operation_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/operations/resolve_ui_module",
-      "owner_capability_ref": "Q.UI.CAPABILITY.UI_MODULE@V0117",
+      "interface_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/interfaces/ui_module_resolution_invoke",
+      "operation_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/operations/resolve_ui_module",
+      "owner_capability_ref": "Q.UI.CAPABILITY.UI_MODULE@V0122",
       "status": "active"
     }
   ],
@@ -35,40 +35,40 @@
     {
       "handler_path": "src/p1/ui_module/resolve_ui_module/handler.ts",
       "interface_refs": [
-        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/interfaces/ui_module_resolution_invoke"
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/interfaces/ui_module_resolution_invoke"
       ],
       "operation_id": "resolve_ui_module",
-      "operation_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/operations/resolve_ui_module",
-      "owner_capability_ref": "Q.UI.CAPABILITY.UI_MODULE@V0117",
+      "operation_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/operations/resolve_ui_module",
+      "owner_capability_ref": "Q.UI.CAPABILITY.UI_MODULE@V0122",
       "test_path": "tests/p1/ui_module/resolve_ui_module/handler.test.ts"
     }
   ],
   "stable_errors": [
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/stable_errors/resolve_ui_module"
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/stable_errors/resolve_ui_module"
   ],
   "types": [
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/source_capability_semantic_projection",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/source_capability_lineage",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_reference_input_binding",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_temporal_input_binding",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_request_control_binding",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_response_view_binding",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_action_binding",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_state_binding",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_permission_binding",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_evidence_view_binding",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_interface_projection",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_operation_projection",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_semantic_coverage",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_semantic_model",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_module_artifact",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_module_projection_input",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_operational_relation_projection",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_state_machine_projection",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_state_transition_projection",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_permission_projection",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_actor_class_projection",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_rule_binding_projection",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117#/type_closure/schemas/ui_logic_graph_projection"
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/source_capability_semantic_projection",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/source_capability_lineage",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_reference_input_binding",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_temporal_input_binding",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_request_control_binding",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_response_view_binding",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_action_binding",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_state_binding",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_permission_binding",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_evidence_view_binding",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_interface_projection",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_operation_projection",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_semantic_coverage",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_semantic_model",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_module_artifact",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_module_projection_input",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_operational_relation_projection",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_state_machine_projection",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_state_transition_projection",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_permission_projection",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_actor_class_projection",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_rule_binding_projection",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/type_closure/schemas/ui_logic_graph_projection"
   ]
 }
