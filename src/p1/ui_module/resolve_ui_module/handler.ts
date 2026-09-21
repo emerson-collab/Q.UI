@@ -2,8 +2,8 @@ import { createHash } from "node:crypto";
 import { StableRuntimeError, deep_freeze } from "../../../p0/runtime_contract.ts";
 
 export type JsonObject = Readonly<Record<string, unknown>>;
-export const CAPABILITY_CONTRACT_REF = "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0117" as const;
-export const CAPABILITY_CONTRACT_HASH = "sha256:f140c539648338fe408fe60aa7e84e8e41bcae8583aa9150f7a5ba3e6a222b01" as const;
+export const CAPABILITY_CONTRACT_REF = "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122" as const;
+export const CAPABILITY_CONTRACT_HASH = "sha256:2c361c4d0fb7fafb2f3500ef64455c8213cdae0ded2ce6ca3bc513104d46fe4f" as const;
 export const OPERATION_REF = `${CAPABILITY_CONTRACT_REF}#/operations/resolve_ui_module` as const;
 export const SEMANTIC_MODEL_VERSION = "Q_UI_MODULE_SEMANTIC_MODEL_V6" as const;
 
@@ -560,6 +560,26 @@ function fieldSemantics(descriptor: Record<string, unknown>, field: string): Rec
   if (!["PLAIN_VALUE", "BUSINESS_REFERENCE", "TEMPORAL"].includes(kind)) {
     fail("UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE", `${field} has unknown semantic_kind ${kind}`);
   }
+
+  const variabilityClass = stringValue(
+    semantics.variability_class,
+    "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
+    `${field}.x_q_field_semantics.variability_class`,
+  );
+  if (variabilityClass !== "GENERAL" && variabilityClass !== "INSTANCE") {
+    fail("UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE", `${field} has unknown variability_class ${variabilityClass}`);
+  }
+  const instanceVariableRef = nullableString(
+    semantics.instance_variable_ref,
+    "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
+    `${field}.x_q_field_semantics.instance_variable_ref`,
+  );
+  if (variabilityClass === "GENERAL" && instanceVariableRef !== null) {
+    fail("UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE", `${field} GENERAL variability forbids instance_variable_ref`);
+  }
+  if (variabilityClass === "INSTANCE" && instanceVariableRef === null) {
+    fail("UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE", `${field} INSTANCE variability requires exact instance_variable_ref`);
+  }
   if (kind === "PLAIN_VALUE") {
     const conflicts = Object.keys(semantics).filter((key) => key !== "semantic_kind" && SPECIAL_SEMANTIC_KEYS.has(key));
     if (conflicts.length > 0) {
@@ -1044,6 +1064,14 @@ function requestControls(
     const descriptor = objectValue(raw, "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS", field);
     const semantics = fieldSemantics(descriptor, field);
     const semanticKind = semantics.semantic_kind as string;
+    const variabilityClass = semantics.variability_class as "GENERAL" | "INSTANCE";
+    const instanceVariableRef = semantics.instance_variable_ref === undefined || semantics.instance_variable_ref === null
+      ? null
+      : stringValue(
+          semantics.instance_variable_ref,
+          "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
+          `${field}.x_q_field_semantics.instance_variable_ref`,
+        );
     const structuralSchema = ownerLocalSchemaShape(
       descriptor,
       source,
@@ -1093,6 +1121,8 @@ function requestControls(
       field_order: index,
       reference_binding: referenceBinding,
       temporal_binding: temporalBinding,
+      variability_class: variabilityClass,
+      instance_variable_ref: instanceVariableRef,
     });
   });
   return Object.freeze(controls);
