@@ -8,8 +8,7 @@ projection:
   canonical_name: p1_dependency_realization
   stable_code: P1_DEPENDENCY_REALIZATION
   authority_fragment_ref: Q.SS.STD.P2.CONTRACT.CROSS_DOMAIN_REALIZATION@V0124#/role_capability_catalog/consumer/capabilities/p1_dependency_realization
-  purpose: bind an active external capability mount or governed-data consumption binding to an already-declared receiving-P1 local_dependency_ref
-    and exact receiving Operation use
+  purpose: bind an active mount-set member or governed-data consumption binding to an already-declared receiving-P1 local_dependency_ref and exact receiving Operation use
   semantic_authority: false
   projection_only: true
 operations:
@@ -34,3 +33,7 @@ boundaries:
   p2_stage_database_ownership: false
   p2_gate_or_activation_authority: false
   verification_execution_owner: Q.WORKFLOW
+  active_mount_set_member_dependency_realization_binding_durable: true
+  dependency_realization_exact_readback_before_operation_use_required: true
+  restart_dependency_binding_reverification_against_active_mount_set_required: true
+  operation_use_binding_durable_persistence_required: false
