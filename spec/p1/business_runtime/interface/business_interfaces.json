@@ -1,13 +1,13 @@
 {
-  "authority_ref": "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0181",
+  "authority_ref": "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0182",
   "classification_ref": "Q.SS.STD.META.CONTRACT.DIMENSION_INTERFACE_CLASSIFICATION@V0114",
   "surface_layer_ref": "Q.SS.STD.META.CONTRACT.SURFACE_LAYER_MOUNT@V0114",
   "field_dictionary_ref": "Q.SS.STD.META.CONTRACT.FIELD_DICTIONARY@V0106",
   "surfaces": {
     "CALL": "active",
     "HOOK": "active",
-    "REGISTRY": "active",
-    "EVENT": "active"
+    "EVENT": "active",
+    "REGISTRY": "active"
   },
   "interfaces": {
     "business_operation_invoke": {
@@ -148,6 +148,58 @@
         "stable_error"
       ]
     },
+    "business_event_publish": {
+      "surface": "EVENT",
+      "kind_code": "M4",
+      "kind": "EVENT_PUBLISH",
+      "method_ref": "publish_business_event",
+      "path": [
+        "subject_ref",
+        "trace_id",
+        "request_id"
+      ],
+      "static_mount": [
+        "operation_contract",
+        "result_contract_ref",
+        "receipt_contract_ref",
+        "policy_refs"
+      ],
+      "dynamic_mount": [
+        "input",
+        "runtime_context",
+        "outcome_type",
+        "runtime_result",
+        "stable_error",
+        "execution_receipt",
+        "evidence_ref"
+      ]
+    },
+    "business_event_consume": {
+      "surface": "EVENT",
+      "kind_code": "M5",
+      "kind": "EVENT_CONSUME",
+      "method_ref": "consume_business_event",
+      "path": [
+        "subject_ref",
+        "trace_id",
+        "request_id"
+      ],
+      "static_mount": [
+        "operation_contract",
+        "result_contract_ref",
+        "receipt_contract_ref",
+        "policy_refs"
+      ],
+      "dynamic_mount": [
+        "input",
+        "runtime_context",
+        "outcome_type",
+        "runtime_result",
+        "stable_error",
+        "execution_receipt",
+        "evidence_ref"
+      ]
+    },
     "business_registry_register": {
       "surface": "REGISTRY",
       "kind_code": "M6",
@@ -200,58 +252,6 @@
         "lookup_result",
         "outcome_type",
         "stable_error"
-      ]
-    },
-    "business_event_publish": {
-      "surface": "EVENT",
-      "kind_code": "M4",
-      "kind": "EVENT_PUBLISH",
-      "method_ref": "publish_business_event",
-      "path": [
-        "subject_ref",
-        "trace_id",
-        "request_id"
-      ],
-      "static_mount": [
-        "operation_contract",
-        "result_contract_ref",
-        "receipt_contract_ref",
-        "policy_refs"
-      ],
-      "dynamic_mount": [
-        "input",
-        "runtime_context",
-        "outcome_type",
-        "runtime_result",
-        "stable_error",
-        "execution_receipt",
-        "evidence_ref"
-      ]
-    },
-    "business_event_consume": {
-      "surface": "EVENT",
-      "kind_code": "M5",
-      "kind": "EVENT_CONSUME",
-      "method_ref": "consume_business_event",
-      "path": [
-        "subject_ref",
-        "trace_id",
-        "request_id"
-      ],
-      "static_mount": [
-        "operation_contract",
-        "result_contract_ref",
-        "receipt_contract_ref",
-        "policy_refs"
-      ],
-      "dynamic_mount": [
-        "input",
-        "runtime_context",
-        "outcome_type",
-        "runtime_result",
-        "stable_error",
-        "execution_receipt",
-        "evidence_ref"
       ]
     }
   }
