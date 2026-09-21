@@ -1,4 +1,10 @@
 export type JsonObject = Readonly<Record<string, unknown>>;
+export type UiVariabilityClass = "GENERAL" | "INSTANCE";
+
+export interface UiRequestControlVariability {
+  readonly variability_class: UiVariabilityClass;
+  readonly instance_variable_ref: string | null;
+}
 
 export interface UiModuleArtifact {
   readonly ui_module_ref: string;
@@ -16,7 +22,7 @@ export interface UiModuleArtifact {
 }
 
 /**
- * Exact V0117 business input payload.
+ * Exact V0122 business input payload.
  *
  * trace_id/request_id and runtime outcome/evidence/receipt carriers are owned by the
  * P0/P1 framework and are intentionally absent from this owner-local payload type.
@@ -27,7 +33,7 @@ export interface ResolveUiModuleRequest {
   readonly projection_input: JsonObject;
 }
 
-/** Exact V0117 runtime_result payload. */
+/** Exact V0122 runtime_result payload. */
 export interface ResolveUiModuleResponse {
   readonly ui_module_artifact: UiModuleArtifact;
 }
