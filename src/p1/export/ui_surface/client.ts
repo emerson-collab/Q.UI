@@ -1,5 +1,5 @@
 import { public_contracts } from "./contracts.ts";
-    import type { CreateUiSurfaceRequest, CreateUiSurfaceOutcome, ResolveUiSurfaceRequest, ResolveUiSurfaceOutcome } from "./types.ts";
+    import type { CreateUiSurfaceRequest, CreateUiSurfaceResponse, ResolveUiSurfaceRequest, ResolveUiSurfaceResponse } from "./types.ts";
 
     export interface P1OperationInvoker {
       invoke(operation_ref: string, input: unknown): Promise<unknown>;
@@ -9,18 +9,18 @@ import { public_contracts } from "./contracts.ts";
       constructor(private readonly invoker: P1OperationInvoker) {}
 
 
-async create_ui_surface(input: CreateUiSurfaceRequest): Promise<CreateUiSurfaceOutcome> {
+async create_ui_surface(input: CreateUiSurfaceRequest): Promise<CreateUiSurfaceResponse> {
   return await this.invoker.invoke(
     public_contracts.operations.create_ui_surface.operation_ref,
     input,
-  ) as CreateUiSurfaceOutcome;
+  ) as CreateUiSurfaceResponse;
 }
 
-async resolve_ui_surface(input: ResolveUiSurfaceRequest): Promise<ResolveUiSurfaceOutcome> {
+async resolve_ui_surface(input: ResolveUiSurfaceRequest): Promise<ResolveUiSurfaceResponse> {
   return await this.invoker.invoke(
     public_contracts.operations.resolve_ui_surface.operation_ref,
     input,
-  ) as ResolveUiSurfaceOutcome;
+  ) as ResolveUiSurfaceResponse;
 }
     }
 
