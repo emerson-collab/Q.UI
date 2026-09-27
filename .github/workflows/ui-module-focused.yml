@@ -1,4 +1,5 @@
 name: Q UI Module focused tests
+# Focused UI Module verification only.
 
 on:
   push:
