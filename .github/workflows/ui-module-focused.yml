@@ -1,5 +1,5 @@
 name: Q UI Module focused tests
-# Focused UI Module verification only.
+# Focused UI Module verification only. Final Q.Workflow/Q.Gate chain trigger.
 
 on:
   push:
