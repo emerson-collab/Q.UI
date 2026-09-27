@@ -15,7 +15,7 @@ export const public_contracts = Object.freeze({
       request_contract_ref: "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/contracts/resolve_ui_module_request_contract",
       response_contract_ref: "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/contracts/resolve_ui_module_response_contract",
       stable_error_contract_ref: "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/stable_errors/resolve_ui_module",
-      outcome_contract_ref: "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0182#/outcome_contracts/call_outcome",
+      outcome_contract_ref: "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0183#/outcome_contracts/call_outcome",
     }),
   }),
   operations: Object.freeze({
@@ -24,7 +24,7 @@ export const public_contracts = Object.freeze({
       request_contract_ref: "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/contracts/resolve_ui_module_request_contract",
       response_contract_ref: "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/contracts/resolve_ui_module_response_contract",
       stable_error_contract_ref: "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/stable_errors/resolve_ui_module",
-      outcome_contract_ref: "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0182#/outcome_contracts/call_outcome",
+      outcome_contract_ref: "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0183#/outcome_contracts/call_outcome",
     }),
   }),
   outcome_contract: Object.freeze({
