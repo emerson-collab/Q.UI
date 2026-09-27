@@ -10,7 +10,7 @@ The latest version in each authoritative Contract folder is active. `${CURRENT}`
 
 - Repository Directory Skeleton: `Q.SS.STD.META.CONTRACT.REPOSITORY_DIRECTORY_SKELETON@V0145`
 - P0 Runtime Core: `Q.SS.STD.P0.CONTRACT.RUNTIME_CORE@V0134`
-- P1 Business Runtime: `Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0182`
+- P1 Business Runtime: `Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0183`
 - P2 Cross-Domain Realization: `Q.SS.STD.P2.CONTRACT.CROSS_DOMAIN_REALIZATION@V0125`
 - Q.Workflow Domain execution declaration: `Q.WORKFLOW.CONTRACT.DOMAIN@V0116`
 - Q.Workflow Capability: `Q.WORKFLOW.CONTRACT.CAPABILITY.WORKFLOW@V0114`
@@ -18,7 +18,7 @@ The latest version in each authoritative Contract folder is active. `${CURRENT}`
 ## Physical DRT baseline
 
 - P0 `V0134`
-- P1 `V0182`
+- P1 `V0183`
 - P2 `V0125`
 - P3 `V0145`
 - P4 `V0141`
