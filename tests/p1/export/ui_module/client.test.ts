@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { create_client } from "../../../../src/p1/export/ui_module/client.ts";
 
-test("ui_module client invokes the exact frozen V0122 public Operation ref with owner-local business payload only", async () => {
+test("ui_module client invokes the exact frozen V0123 public Operation ref with owner-local business payload only", async () => {
   const calls: Array<{ operation_ref: string; input: unknown }> = [];
   const client = create_client({
     async invoke(operation_ref, input) {
@@ -26,7 +26,7 @@ test("ui_module client invokes the exact frozen V0122 public Operation ref with 
   assert.equal(calls.length, 1);
   assert.equal(
     calls[0]?.operation_ref,
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/operations/resolve_ui_module",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/operations/resolve_ui_module",
   );
   assert.deepEqual(Object.keys(calls[0]?.input as Record<string, unknown>).sort(), [
     "projection_input",
