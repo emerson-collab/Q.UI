@@ -2,10 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { entry, stage_extension } from "../../../../src/p1/export/ui_module/entry.ts";
 
-test("ui_module extraction entry is static and bound to frozen V0122/P1/P0 authority", () => {
-  assert.equal(entry.capability_ref, "Q.UI.CAPABILITY.UI_MODULE@V0122");
-  assert.equal(entry.capability_contract_ref, "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122");
-  assert.equal(stage_extension.stage_contract_ref, "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0182");
+test("ui_module extraction entry is static and bound to frozen V0123/P1/P0 authority", () => {
+  assert.equal(entry.capability_ref, "Q.UI.CAPABILITY.UI_MODULE@V0123");
+  assert.equal(entry.capability_contract_ref, "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123");
+  assert.equal(stage_extension.stage_contract_ref, "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0183");
   assert.deepEqual(stage_extension.consumed_interface_refs, [
     "Q.SS.STD.P0.CONTRACT.RUNTIME_CORE@V0134#/interfaces/runtime_execution_invoke",
   ]);
