@@ -22,7 +22,7 @@ export interface UiModuleArtifact {
 }
 
 /**
- * Exact V0122 business input payload.
+ * Exact V0123 business input payload.
  *
  * trace_id/request_id and runtime outcome/evidence/receipt carriers are owned by the
  * P0/P1 framework and are intentionally absent from this owner-local payload type.
@@ -33,7 +33,7 @@ export interface ResolveUiModuleRequest {
   readonly projection_input: JsonObject;
 }
 
-/** Exact V0122 runtime_result payload. */
+/** Exact V0123 runtime_result payload. */
 export interface ResolveUiModuleResponse {
   readonly ui_module_artifact: UiModuleArtifact;
 }
