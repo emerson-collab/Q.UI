@@ -2,8 +2,8 @@ import { createHash } from "node:crypto";
 import { StableRuntimeError, deep_freeze } from "../../../p0/runtime_contract.ts";
 
 export type JsonObject = Readonly<Record<string, unknown>>;
-export const CAPABILITY_CONTRACT_REF = "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122" as const;
-export const CAPABILITY_CONTRACT_HASH = "sha256:2c361c4d0fb7fafb2f3500ef64455c8213cdae0ded2ce6ca3bc513104d46fe4f" as const;
+export const CAPABILITY_CONTRACT_REF = "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123" as const;
+export const CAPABILITY_CONTRACT_HASH = "sha256:934b2f09e364bc533eba81d5a003debafec0af97e947bac9a7b22226f2b067ff" as const;
 export const OPERATION_REF = `${CAPABILITY_CONTRACT_REF}#/operations/resolve_ui_module` as const;
 export const SEMANTIC_MODEL_VERSION = "Q_UI_MODULE_SEMANTIC_MODEL_V6" as const;
 
