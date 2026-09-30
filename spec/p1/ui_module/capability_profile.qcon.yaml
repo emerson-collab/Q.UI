@@ -1,15 +1,15 @@
-capability_ref: Q.UI.CAPABILITY.UI_MODULE@V0122
-capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122
-capability_contract_hash: sha256:2c361c4d0fb7fafb2f3500ef64455c8213cdae0ded2ce6ca3bc513104d46fe4f
+capability_ref: Q.UI.CAPABILITY.UI_MODULE@V0123
+capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123
+capability_contract_hash: sha256:934b2f09e364bc533eba81d5a003debafec0af97e947bac9a7b22226f2b067ff
 capability_id: ui_module
-capability_version: V0117
+capability_version: V0123
 mode: PUBLICATION_ELIGIBLE
 public_operation_refs:
-- Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/operations/resolve_ui_module
+- Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/operations/resolve_ui_module
 public_interface_refs:
-- Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122#/interfaces/ui_module_resolution_invoke
+- Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/interfaces/ui_module_resolution_invoke
 runtime_contract_ref: Q.SS.STD.P0.CONTRACT.RUNTIME_CORE@V0134
-stage_contract_ref: Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0182
+stage_contract_ref: Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0183
 public_entry_ref: src/p1/export/ui_module/entry.ts#entry
 metadata_ref: src/p1/export/ui_module/metadata.ts#capability_extraction_metadata
 direct_handler_export_forbidden: true
