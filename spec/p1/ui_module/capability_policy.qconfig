@@ -1,5 +1,5 @@
-capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0122
-capability_contract_hash: sha256:2c361c4d0fb7fafb2f3500ef64455c8213cdae0ded2ce6ca3bc513104d46fe4f
+capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123
+capability_contract_hash: sha256:934b2f09e364bc533eba81d5a003debafec0af97e947bac9a7b22226f2b067ff
 runtime_contract_ref: Q.SS.STD.P0.CONTRACT.RUNTIME_CORE@V0134
 fixed_skeleton_mutation_forbidden: true
 extra_operation_file_forbidden_by_default: true
