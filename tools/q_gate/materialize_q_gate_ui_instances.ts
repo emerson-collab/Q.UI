@@ -6,11 +6,13 @@ import {
 import {
   materializeUiSurfaceInstance,
   type SourceP1CapabilityIdentity as SurfaceSourceIdentity,
+  type SourceP1CapabilityIdentityVerifier as SurfaceIdentityVerifier,
   type StaticInstanceWriter as SurfaceInstanceWriter,
 } from "../ui_surface/materialize_p1_capability_ui_surface_instance.ts";
 import {
   materializeUiRenderInstance,
   type SourceP1CapabilityIdentity as RenderSourceIdentity,
+  type SourceP1CapabilityIdentityVerifier as RenderIdentityVerifier,
   type StaticInstanceWriter as RenderInstanceWriter,
 } from "../ui_render/materialize_p1_capability_ui_render_instance.ts";
 
@@ -20,9 +22,6 @@ export const Q_GATE_UI_SOURCE = Object.freeze({
   source_capability_id: "gate",
   source_capability_version: "V0170",
 } as const satisfies SurfaceSourceIdentity & RenderSourceIdentity);
-
-export const Q_GATE_PRESENTATION_SUBJECT_REF =
-  Q_GATE_UI_SOURCE.source_p1_capability_contract_ref;
 
 export const Q_GATE_THEME_INSTANCE_BINDINGS = Object.freeze({
   skeleton: Object.freeze({
@@ -70,15 +69,29 @@ function objectValue(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
+function exactUiModuleRef(value: string): string {
+  if (value.length === 0) {
+    fail(
+      "Q_GATE_UI_MODULE_REF_INVALID",
+      "GENERAL presentation requires the exact nonempty ui_module_ref",
+    );
+  }
+  return value;
+}
+
 /**
- * Concrete Q.Gate UI projection.
+ * Concrete Q.Gate GENERAL UI projection.
  *
- * The Theme identity and subject are fully frozen here. Surface/Render artifacts
- * remain governed inputs because UI_SURFACE/UI_RENDER artifacts must first be
- * produced by their exact operations and verified under their own hash contracts.
+ * CURRENT UI_CAPABILITY GENERAL semantics make the exact ui_module_ref the
+ * presentation_subject_ref and therefore also the Theme subject. The Q.Gate
+ * Capability Contract ref is source lineage, not Theme-selection subject.
+ *
+ * Surface/Render artifacts remain governed inputs because they must first be
+ * produced and verified under exact UI_SURFACE/UI_RENDER authorities.
  */
 export async function materializeQGateUiInstances(
   themeClient: UIThemeClient<unknown>,
+  uiModuleRef: string,
   resolvedSurfaceArtifact: unknown,
   renderArtifact: unknown,
   artifactVerifier: QGateGovernedUiArtifactVerifier,
@@ -86,11 +99,14 @@ export async function materializeQGateUiInstances(
     SurfaceIdentityVerifier & RenderIdentityVerifier,
   writer: QGateUiInstanceWriter,
 ): Promise<Readonly<{
+  presentation_subject_ref: string;
   theme_identity: ReturnType<typeof projectQGateGithubThemeIdentity>;
   surface_instance_path: string;
   render_instance_path: string;
 }>> {
+  const presentation_subject_ref = exactUiModuleRef(uiModuleRef);
   const theme_identity = projectQGateGithubThemeIdentity();
+
   if (
     theme_identity.skeleton.theme_instance_ref
       !== Q_GATE_THEME_INSTANCE_BINDINGS.skeleton.theme_instance_ref
@@ -102,7 +118,7 @@ export async function materializeQGateUiInstances(
 
   await materializeQGateGithubTheme(
     themeClient,
-    Q_GATE_PRESENTATION_SUBJECT_REF,
+    presentation_subject_ref,
   );
 
   if (!(await artifactVerifier.verifyResolvedSurfaceArtifact(
@@ -115,10 +131,10 @@ export async function materializeQGateUiInstances(
   }
 
   const surface = objectValue(resolvedSurfaceArtifact);
-  if (surface.theme_subject_ref !== Q_GATE_PRESENTATION_SUBJECT_REF) {
+  if (surface.theme_subject_ref !== presentation_subject_ref) {
     fail(
       "Q_GATE_UI_SURFACE_SUBJECT_MISMATCH",
-      "Surface theme_subject_ref must equal the exact Q.Gate presentation subject",
+      "GENERAL Surface theme_subject_ref must equal the exact ui_module_ref",
     );
   }
 
@@ -172,6 +188,7 @@ export async function materializeQGateUiInstances(
   );
 
   return Object.freeze({
+    presentation_subject_ref,
     theme_identity,
     surface_instance_path: surfaceInstance.relative_path,
     render_instance_path: renderInstance.relative_path,

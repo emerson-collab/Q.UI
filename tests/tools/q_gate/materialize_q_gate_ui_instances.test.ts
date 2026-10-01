@@ -3,7 +3,6 @@ import { createHash } from "node:crypto";
 import test from "node:test";
 
 import {
-  Q_GATE_PRESENTATION_SUBJECT_REF,
   Q_GATE_THEME_INSTANCE_BINDINGS,
   materializeQGateUiInstances,
 } from "../../../tools/q_gate/materialize_q_gate_ui_instances.ts";
@@ -19,12 +18,15 @@ function sha(v: J): string {
   return "sha256:" + createHash("sha256").update(canon(v), "utf8").digest("hex");
 }
 
+const UI_MODULE_REF =
+  "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc";
+
 function renderArtifact(surface: any) {
   const render_material = {
     surface,
     render_theme_resolution: {
       selection: {
-        subject_ref: Q_GATE_PRESENTATION_SUBJECT_REF,
+        subject_ref: UI_MODULE_REF,
         theme_phase: "RENDER",
       },
       theme_instance: {
@@ -51,11 +53,11 @@ function renderArtifact(surface: any) {
   };
 }
 
-test("Q.Gate concrete projection uses exact Gate subject and projected instance paths", async () => {
+test("Q.Gate GENERAL projection uses exact ui_module_ref as Theme subject", async () => {
   const surface = {
     ui_surface_ref: "q.ui.surface.gate.primary@V0170",
     source_presentation: {},
-    theme_subject_ref: Q_GATE_PRESENTATION_SUBJECT_REF,
+    theme_subject_ref: UI_MODULE_REF,
     resolved_target_context: {
       target_profile_ref: "q.ui.target.browser.desktop@V0100",
     },
@@ -85,6 +87,7 @@ test("Q.Gate concrete projection uses exact Gate subject and projected instance 
         return {};
       },
     },
+    UI_MODULE_REF,
     surface,
     render,
     {
@@ -107,6 +110,7 @@ test("Q.Gate concrete projection uses exact Gate subject and projected instance 
     },
   );
 
+  assert.equal(result.presentation_subject_ref, UI_MODULE_REF);
   assert.equal(
     result.surface_instance_path,
     "instances/ui_surface/gate_ui_surface/V0170/surface_instance.json",
@@ -117,13 +121,13 @@ test("Q.Gate concrete projection uses exact Gate subject and projected instance 
   );
   assert.equal(
     calls.filter((x) => x.op === "select").every(
-      (x) => x.input.subject_ref === Q_GATE_PRESENTATION_SUBJECT_REF,
+      (x) => x.input.subject_ref === UI_MODULE_REF,
     ),
     true,
   );
 });
 
-test("Q.Gate concrete projection rejects a Surface with a different Theme subject", async () => {
+test("Q.Gate GENERAL projection rejects a Surface with a different Theme subject", async () => {
   await assert.rejects(
     () => materializeQGateUiInstances(
       {
@@ -132,6 +136,7 @@ test("Q.Gate concrete projection rejects a Surface with a different Theme subjec
         async set_theme_selection() { return {}; },
         async resolve_selected_theme() { return {}; },
       },
+      UI_MODULE_REF,
       {
         ui_surface_ref: "x",
         source_presentation: {},
@@ -153,5 +158,32 @@ test("Q.Gate concrete projection rejects a Surface with a different Theme subjec
     ),
     (error: unknown) =>
       (error as { code?: string }).code === "Q_GATE_UI_SURFACE_SUBJECT_MISMATCH",
+  );
+});
+
+test("Q.Gate GENERAL projection rejects an empty ui_module_ref", async () => {
+  await assert.rejects(
+    () => materializeQGateUiInstances(
+      {
+        async register_theme_instance() { return {}; },
+        async list_theme_instances() { return {}; },
+        async set_theme_selection() { return {}; },
+        async resolve_selected_theme() { return {}; },
+      },
+      "",
+      {},
+      {},
+      {
+        verifyResolvedSurfaceArtifact: () => true,
+        verifyRenderArtifact: () => true,
+      },
+      { verifyExactSourceIdentity: () => true },
+      {
+        async writeImmutableJson() {},
+        async readExactBytes() { return new Uint8Array(); },
+      },
+    ),
+    (error: unknown) =>
+      (error as { code?: string }).code === "Q_GATE_UI_MODULE_REF_INVALID",
   );
 });
