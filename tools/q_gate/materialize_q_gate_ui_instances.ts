@@ -82,11 +82,8 @@ export async function materializeQGateUiInstances(
   resolvedSurfaceArtifact: unknown,
   renderArtifact: unknown,
   artifactVerifier: QGateGovernedUiArtifactVerifier,
-  sourceIdentityVerifier: {
-    verifyExactSourceIdentity(
-      identity: Readonly<typeof Q_GATE_UI_SOURCE>,
-    ): boolean | Promise<boolean>;
-  },
+  sourceIdentityVerifier:
+    SurfaceIdentityVerifier & RenderIdentityVerifier,
   writer: QGateUiInstanceWriter,
 ): Promise<Readonly<{
   theme_identity: ReturnType<typeof projectQGateGithubThemeIdentity>;
