@@ -1,14 +1,26 @@
-capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109
-capability_contract_hash: sha256:590e487297c89b1b91a838ac97eae4d309e80db9cc1502e7bbfba55f5560536f
-stable_error_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/stable_error_contract
-stable_error_codes:
-  - UI_THEME_SELECTOR_UNRESOLVED
-  - UI_THEME_CONTEXT_INCOMPATIBLE
+capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118
+capability_contract_hash: sha256:2b8026d0b6d42c3854725a98855edec0da06eaf6191cb2438ea6c32b5055c337
+runtime_contract_ref: Q.SS.STD.P0.CONTRACT.RUNTIME_CORE@V0134
 local_dependencies: []
 external_dependencies: {}
 implicit_dependency_forbidden: true
-owner_local_persistence_required: false
+formal_p2_dependency_forbidden: true
+owner_local_persistence_required: true
+database_backed_realization_required: true
+database_objects_owned_by_capability: false
+physical_persistence_realization_owner: receiving repository owner-local Skeleton/runtime
+fixed_physical_table_names_required_by_capability_contract: false
+durable_state_kinds:
+- THEME_INSTANCE_REGISTRY
+- THEME_SELECTION
+state_model: STATELESS
+selection_source: MANUAL
+selection_key:
+- subject_ref
+- theme_phase
+static_theme_instance_projection: instances/ui_theme/<instance_id>/<instance_version>/theme_instance.json
+runtime_realization_required_for_theme_instance: false
 capability_rule_set:
   rule_set_id: q.ui.ui_theme.contract_invariants
-  rule_set_version: V0109
-  rule_count: 34
+  rule_set_version: V0118
+  rule_count: 38

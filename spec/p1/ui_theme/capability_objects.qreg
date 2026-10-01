@@ -1,16 +1,26 @@
-capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109
-capability_contract_hash: sha256:590e487297c89b1b91a838ac97eae4d309e80db9cc1502e7bbfba55f5560536f
-capability:
-  capability_ref: Q.UI.CAPABILITY.UI_THEME@V0109
-  capability_id: ui_theme
-  operation_refs:
-    - Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/operations/resolve_ui_theme
-operations:
-  resolve_ui_theme:
-    operation_ref: Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/operations/resolve_ui_theme
-    operation_id: resolve_ui_theme
-    owner_capability_ref: Q.UI.CAPABILITY.UI_THEME@V0109
-    handler_ref: src/p1/ui_theme/resolve_ui_theme/handler.ts#handler
-    test_ref: tests/p1/ui_theme/resolve_ui_theme/handler.test.ts
-    interface_refs:
-      - Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/interfaces/ui_theme_invoke
+{
+  "capability_contract_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118",
+  "capability_contract_hash":"sha256:2b8026d0b6d42c3854725a98855edec0da06eaf6191cb2438ea6c32b5055c337",
+  "capability_ref":"Q.UI.CAPABILITY.UI_THEME@V0118",
+  "operations":[
+    {"operation_id":"register_theme_instance","operation_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/operations/register_theme_instance","owner_capability_ref":"Q.UI.CAPABILITY.UI_THEME@V0118","handler_path":"src/p1/ui_theme/register_theme_instance/handler.ts","test_path":"tests/p1/ui_theme/register_theme_instance/handler.test.ts","interface_refs":["Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/interfaces/theme_instance_registration_invoke"]},
+    {"operation_id":"list_theme_instances","operation_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/operations/list_theme_instances","owner_capability_ref":"Q.UI.CAPABILITY.UI_THEME@V0118","handler_path":"src/p1/ui_theme/list_theme_instances/handler.ts","test_path":"tests/p1/ui_theme/list_theme_instances/handler.test.ts","interface_refs":["Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/interfaces/theme_instance_list_invoke"]},
+    {"operation_id":"set_theme_selection","operation_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/operations/set_theme_selection","owner_capability_ref":"Q.UI.CAPABILITY.UI_THEME@V0118","handler_path":"src/p1/ui_theme/set_theme_selection/handler.ts","test_path":"tests/p1/ui_theme/set_theme_selection/handler.test.ts","interface_refs":["Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/interfaces/theme_selection_set_invoke"]},
+    {"operation_id":"resolve_selected_theme","operation_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/operations/resolve_selected_theme","owner_capability_ref":"Q.UI.CAPABILITY.UI_THEME@V0118","handler_path":"src/p1/ui_theme/resolve_selected_theme/handler.ts","test_path":"tests/p1/ui_theme/resolve_selected_theme/handler.test.ts","interface_refs":["Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/interfaces/selected_theme_resolution_invoke"]}
+  ],
+  "stable_errors":[
+    "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/stable_errors/register_theme_instance",
+    "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/stable_errors/list_theme_instances",
+    "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/stable_errors/set_theme_selection",
+    "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/stable_errors/resolve_selected_theme"
+  ],
+  "types":[
+    "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/type_closure/schemas/theme_phase",
+    "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/type_closure/schemas/skeleton_theme_material",
+    "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/type_closure/schemas/render_theme_material",
+    "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/type_closure/schemas/theme_material",
+    "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/type_closure/schemas/theme_instance_record",
+    "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/type_closure/schemas/theme_selection_record",
+    "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/type_closure/schemas/resolved_selected_theme"
+  ]
+}

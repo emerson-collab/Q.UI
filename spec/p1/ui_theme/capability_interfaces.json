@@ -1,73 +1,10 @@
 {
-  "capability_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109",
-  "capability_contract_hash": "sha256:590e487297c89b1b91a838ac97eae4d309e80db9cc1502e7bbfba55f5560536f",
-  "interface_inventory": {
-    "SPECIFICATION": {
-      "specification_interface_refs": [
-        "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/interfaces/ui_theme_invoke"
-      ]
-    },
-    "PAYLOAD": {
-      "payload_contract_refs": [
-        "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/contracts/resolve_ui_theme_request_contract",
-        "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/contracts/resolve_ui_theme_response_contract",
-        "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/stable_error_contract",
-        "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0179#/outcome_contracts/call_outcome",
-        "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/type_closure/schemas/ui_theme_material",
-        "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/type_closure/schemas/ui_theme_selector",
-        "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/type_closure/schemas/ui_theme_artifact"
-      ]
-    },
-    "INTERNAL": {
-      "internal_interface_refs": []
-    }
-  },
-  "external_provider_surface": {
-    "mode": "PUBLICATION_ELIGIBLE",
-    "provider_interface_refs": [
-      "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/interfaces/ui_theme_invoke"
-    ],
-    "surface_ref": "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/external_provider_surface",
-    "surface_hash": null,
-    "surface_hash_resolution": "EXTERNAL_SURFACE_AND_CLOSURE_BINDING_AFTER_IMMUTABLE_SOURCE_FINALIZATION"
-  },
-  "interfaces": {
-    "ui_theme_invoke": {
-      "interface_ref": "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/interfaces/ui_theme_invoke",
-      "operation_ref": "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/operations/resolve_ui_theme",
-      "surface": "CALL",
-      "kind_code": "M1",
-      "kind": "CALL_INVOKE",
-      "method_ref": "resolve_ui_theme",
-      "request_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/contracts/resolve_ui_theme_request_contract",
-      "response_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/contracts/resolve_ui_theme_response_contract",
-      "stable_error_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0109#/stable_error_contract",
-      "outcome_contract_ref": "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0179#/outcome_contracts/call_outcome",
-      "path": [
-        "capability_id",
-        "operation_id",
-        "trace_id",
-        "request_id"
-      ],
-      "static_mount": [
-        "operation_contract"
-      ],
-      "dynamic_mount": [
-        "input",
-        "runtime_context",
-        "outcome_type",
-        "runtime_result",
-        "stable_error",
-        "execution_receipt",
-        "evidence_ref"
-      ]
-    }
-  },
-  "outcome_projection": {
-    "discriminator": "outcome_type",
-    "allowed_values": [
-      "response",
-      "stable_error"
-    ]
+  "capability_contract_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118",
+  "capability_contract_hash":"sha256:2b8026d0b6d42c3854725a98855edec0da06eaf6191cb2438ea6c32b5055c337",
+  "interfaces":{
+    "theme_instance_registration_invoke":{"interface_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/interfaces/theme_instance_registration_invoke","operation_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/operations/register_theme_instance","surface":"CALL","kind_code":"M1","kind":"CALL_INVOKE","method_ref":"register_theme_instance","request_contract_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/contracts/register_theme_instance_request_contract","response_contract_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/contracts/register_theme_instance_response_contract","stable_error_contract_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/stable_errors/register_theme_instance","outcome_contract_ref":"Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0183#/outcome_contracts/call_outcome","path":["capability_id","operation_id","trace_id","request_id"],"static_mount":["operation_contract"],"dynamic_mount":["input","runtime_context","outcome_type","runtime_result","stable_error","execution_receipt","evidence_ref"]},
+    "theme_instance_list_invoke":{"interface_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/interfaces/theme_instance_list_invoke","operation_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/operations/list_theme_instances","surface":"CALL","kind_code":"M1","kind":"CALL_INVOKE","method_ref":"list_theme_instances","request_contract_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/contracts/list_theme_instances_request_contract","response_contract_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/contracts/list_theme_instances_response_contract","stable_error_contract_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/stable_errors/list_theme_instances","outcome_contract_ref":"Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0183#/outcome_contracts/call_outcome","path":["capability_id","operation_id","trace_id","request_id"],"static_mount":["operation_contract"],"dynamic_mount":["input","runtime_context","outcome_type","runtime_result","stable_error","execution_receipt","evidence_ref"]},
+    "theme_selection_set_invoke":{"interface_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/interfaces/theme_selection_set_invoke","operation_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/operations/set_theme_selection","surface":"CALL","kind_code":"M1","kind":"CALL_INVOKE","method_ref":"set_theme_selection","request_contract_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/contracts/set_theme_selection_request_contract","response_contract_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/contracts/set_theme_selection_response_contract","stable_error_contract_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/stable_errors/set_theme_selection","outcome_contract_ref":"Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0183#/outcome_contracts/call_outcome","path":["capability_id","operation_id","trace_id","request_id"],"static_mount":["operation_contract"],"dynamic_mount":["input","runtime_context","outcome_type","runtime_result","stable_error","execution_receipt","evidence_ref"]},
+    "selected_theme_resolution_invoke":{"interface_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/interfaces/selected_theme_resolution_invoke","operation_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/operations/resolve_selected_theme","surface":"CALL","kind_code":"M1","kind":"CALL_INVOKE","method_ref":"resolve_selected_theme","request_contract_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/contracts/resolve_selected_theme_request_contract","response_contract_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/contracts/resolve_selected_theme_response_contract","stable_error_contract_ref":"Q.UI.CONTRACT.CAPABILITY.UI_THEME@V0118#/stable_errors/resolve_selected_theme","outcome_contract_ref":"Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0183#/outcome_contracts/call_outcome","path":["capability_id","operation_id","trace_id","request_id"],"static_mount":["operation_contract"],"dynamic_mount":["input","runtime_context","outcome_type","runtime_result","stable_error","execution_receipt","evidence_ref"]}
   }
 }
