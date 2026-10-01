@@ -1,0 +1,106 @@
+{
+  "theme_instance_ref": "app.github-like.skeleton.v1",
+  "theme_phase": "SKELETON",
+  "theme_name": "GitHub-like App Skeleton",
+  "theme_material": {
+    "material_kind": "SKELETON",
+    "role_presentation": {
+      "app_header": {
+        "treatment": "compact_product_bar",
+        "height": 56,
+        "topology_order_preserved": true
+      },
+      "app_navigation": {
+        "treatment": "compact_left_navigation",
+        "topology_order_preserved": true,
+        "selection_emphasis": "subtle_fill_with_strong_text"
+      },
+      "app_workspace": {
+        "treatment": "content_first_workspace",
+        "topology_order_preserved": true,
+        "primary_content_priority": "high",
+        "secondary_content_priority": "contextual"
+      },
+      "app_auxiliary": {
+        "treatment": "context_panel",
+        "topology_order_preserved": true,
+        "default_emphasis": "low"
+      },
+      "app_overlay": {
+        "treatment": "popover_dialog_layer",
+        "topology_order_preserved": true,
+        "background_separation": "strong"
+      }
+    },
+    "navigation_treatment": {
+      "primary_slot_ref": "app_navigation.primary",
+      "style": "repository_sidebar",
+      "density": "compact",
+      "item_alignment": "left",
+      "selected_state": "muted_fill",
+      "section_dividers": "subtle",
+      "nested_navigation": "indented",
+      "overflow_behavior": "menu"
+    },
+    "arrangement_treatment": {
+      "header_slot_ref": "app_header.primary",
+      "workspace_primary_slot_ref": "app_workspace.primary",
+      "workspace_secondary_slot_ref": "app_workspace.secondary",
+      "auxiliary_slot_ref": "app_auxiliary.primary",
+      "overlay_slot_ref": "app_overlay.primary",
+      "workspace_style": "main_plus_context",
+      "content_max_width": 1280,
+      "content_alignment": "center_when_wide",
+      "topology_mutation": "forbidden"
+    },
+    "grouping_treatment": {
+      "primary_group_style": "flat_sections",
+      "secondary_group_style": "subtle_bordered_groups",
+      "section_heading_weight": 600,
+      "section_separator": "hairline",
+      "card_usage": "selective_not_default",
+      "metadata_grouping": "inline_compact"
+    },
+    "progressive_disclosure_treatment": {
+      "secondary_actions": "overflow_menu",
+      "advanced_filters": "collapsible",
+      "long_metadata": "details_panel",
+      "auxiliary_visibility": "contextual",
+      "destructive_actions": "separated_from_primary_actions"
+    },
+    "responsive_treatment": {
+      "wide": {
+        "navigation": "persistent",
+        "workspace_secondary": "visible_when_populated",
+        "auxiliary": "contextual"
+      },
+      "medium": {
+        "navigation": "collapsible",
+        "workspace_secondary": "stack_or_drawer",
+        "auxiliary": "drawer"
+      },
+      "narrow": {
+        "navigation": "drawer",
+        "workspace_secondary": "stack",
+        "auxiliary": "sheet",
+        "header_actions": "overflow"
+      }
+    },
+    "density_treatment": {
+      "default_density": "compact",
+      "navigation_row_height": 32,
+      "control_height": 32,
+      "table_row_height": 36,
+      "section_gap": 24,
+      "content_gap": 16
+    },
+    "interaction_presentation_treatment": {
+      "hover": "subtle_background_change",
+      "selected": "muted_fill_plus_weight",
+      "focus": "visible_focus_ring",
+      "pressed": "slightly_darker_surface",
+      "disabled": "reduced_contrast_without_hiding_state",
+      "drag_reorder": "not_introduced_by_theme"
+    }
+  }
+}
