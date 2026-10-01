@@ -1,13 +1,13 @@
 import { createHash } from "node:crypto";
 
 export const UI_RENDER_CONTRACT_REF =
-  "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0118" as const;
+  "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0119" as const;
 export const UI_RENDER_CONTRACT_HASH =
-  "sha256:db67e85de45e162a89e8a9110815ec1bc6cd6844228044c0d56f94275839a83d" as const;
+  "sha256:b1628d6c461ee2704c25c518956081ca34de88badc70b0705be1bf36c830c2b0" as const;
 export const Q_PROMPT_ARTIFACT_CONTENT_HASH =
-  "sha256:2562a0735ad4caebe868c509ca4574e3c26e0c2f1ec309eae08b81bf57a51af1" as const;
+  "sha256:d96ed39cb2b0faaaf0427f5f41c66550adc27f4119a17a2cff2ead687edcddf7" as const;
 export const IMPLEMENTATION_OBLIGATION_SNAPSHOT_HASH =
-  "sha256:6e129bab6042c87394c17202447dfb9ef9e3836d613e5024998483009e12c335" as const;
+  "sha256:b40bc95024ce9fd65ac38ca16ae53e369505de5f3ddcfcd985e5208a0044f1c3" as const;
 export const INSTANCE_CAPABILITY_ID = "ui_render" as const;
 export const INSTANCE_FILE_NAME = "render_instance.json" as const;
 

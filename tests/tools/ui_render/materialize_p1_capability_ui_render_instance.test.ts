@@ -3,6 +3,10 @@ import { createHash } from "node:crypto";
 import test from "node:test";
 
 import {
+  UI_RENDER_CONTRACT_REF,
+  UI_RENDER_CONTRACT_HASH,
+  Q_PROMPT_ARTIFACT_CONTENT_HASH,
+  IMPLEMENTATION_OBLIGATION_SNAPSHOT_HASH,
   buildUiRenderInstanceRecord,
   materializeUiRenderInstance,
   projectUiRenderInstanceIdentity,
@@ -146,5 +150,22 @@ test("rejects Render Artifact whose content hash does not verify", () => {
     (error: unknown) =>
       (error as { code?: string }).code
         === "UI_RENDER_INSTANCE_ARTIFACT_INVALID",
+  );
+});
+
+
+test("binds exact CURRENT UI_RENDER and Prompt Artifact lineage", () => {
+  assert.equal(UI_RENDER_CONTRACT_REF, "Q.UI.CONTRACT.CAPABILITY.UI_RENDER@V0119");
+  assert.equal(
+    UI_RENDER_CONTRACT_HASH,
+    "sha256:b1628d6c461ee2704c25c518956081ca34de88badc70b0705be1bf36c830c2b0",
+  );
+  assert.equal(
+    Q_PROMPT_ARTIFACT_CONTENT_HASH,
+    "sha256:d96ed39cb2b0faaaf0427f5f41c66550adc27f4119a17a2cff2ead687edcddf7",
+  );
+  assert.equal(
+    IMPLEMENTATION_OBLIGATION_SNAPSHOT_HASH,
+    "sha256:b40bc95024ce9fd65ac38ca16ae53e369505de5f3ddcfcd985e5208a0044f1c3",
   );
 });
