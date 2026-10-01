@@ -1,0 +1,101 @@
+{
+  "instance_id": "gate_github_skeleton",
+  "instance_version": "V0170",
+  "theme_instance_ref": "gate_github_skeleton@V0170",
+  "theme_phase": "SKELETON",
+  "theme_name": "Q.Gate GitHub-like Skeleton",
+  "theme_material": {
+    "material_kind": "SKELETON",
+    "role_presentation": {
+      "app_header": {
+        "treatment": "compact_product_header",
+        "behavior": "fixed_primary_context",
+        "emphasis": "gate_subject_status_and_actions"
+      },
+      "app_navigation": {
+        "treatment": "repository_sidebar",
+        "behavior": "persistent_on_wide_collapsible_on_narrow",
+        "selection_emphasis": "muted_fill_plus_weight"
+      },
+      "app_workspace": {
+        "treatment": "content_first_workspace",
+        "behavior": "main_content_with_contextual_secondary",
+        "primary_priority": "high"
+      },
+      "app_auxiliary": {
+        "treatment": "context_panel",
+        "behavior": "visible_only_when_contextually_required"
+      },
+      "app_overlay": {
+        "treatment": "popover_dialog_layer",
+        "behavior": "non_destructive_overlay"
+      }
+    },
+    "navigation_treatment": {
+      "primary_style": "github_repository_navigation",
+      "row_density": "compact",
+      "section_dividers": "subtle",
+      "nested_items": "indented",
+      "selected_state": "muted_fill",
+      "overflow": "menu"
+    },
+    "arrangement_treatment": {
+      "workspace_model": "main_plus_context",
+      "primary_alignment": "content_first",
+      "max_content_width": 1280,
+      "wide_layout": "two_column_when_secondary_present",
+      "medium_layout": "main_plus_collapsible_secondary",
+      "narrow_layout": "single_column_stack"
+    },
+    "grouping_treatment": {
+      "primary_group_style": "flat_sections",
+      "secondary_group_style": "subtle_bordered_sections",
+      "panel_usage": "selective",
+      "metadata_grouping": "compact_inline",
+      "section_heading_weight": 600
+    },
+    "progressive_disclosure_treatment": {
+      "secondary_actions": "overflow_menu",
+      "advanced_filters": "collapsible",
+      "evidence_detail": "expandable_details",
+      "rule_detail": "drilldown_panel",
+      "destructive_actions": "separate_from_primary"
+    },
+    "responsive_treatment": {
+      "wide": {
+        "navigation": "persistent",
+        "auxiliary": "contextual",
+        "workspace_secondary": "visible_when_populated"
+      },
+      "medium": {
+        "navigation": "collapsible",
+        "auxiliary": "drawer",
+        "workspace_secondary": "stack_or_drawer"
+      },
+      "narrow": {
+        "navigation": "drawer",
+        "auxiliary": "sheet",
+        "workspace_secondary": "stack",
+        "header_actions": "overflow"
+      }
+    },
+    "density_treatment": {
+      "default_density": "compact",
+      "navigation_row_height": 32,
+      "control_height": 32,
+      "table_row_height": 36,
+      "section_gap": 24,
+      "content_gap": 16
+    },
+    "interaction_presentation_treatment": {
+      "hover": "subtle_background_change",
+      "selected": "muted_fill_plus_weight",
+      "focus": "visible_focus_ring",
+      "pressed": "slightly_darker_surface",
+      "disabled": "reduced_contrast_without_hiding_state",
+      "evidence_expand": "inline_details",
+      "rule_drilldown": "context_panel"
+    }
+  },
+  "content_hash": "sha256:617857ff1abba03e4727c1815c22b5191340c03ac561f6050db39aa191f8cf4d"
+}

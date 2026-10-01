@@ -1,0 +1,194 @@
+{
+  "instance_id": "gate_github_render",
+  "instance_version": "V0170",
+  "theme_instance_ref": "gate_github_render@V0170",
+  "theme_phase": "RENDER",
+  "theme_name": "Q.Gate GitHub-like Render",
+  "theme_material": {
+    "material_kind": "RENDER",
+    "color": {
+      "light": {
+        "canvas": "#ffffff",
+        "canvas_subtle": "#f6f8fa",
+        "canvas_inset": "#f6f8fa",
+        "text_primary": "#1f2328",
+        "text_secondary": "#656d76",
+        "text_muted": "#8c959f",
+        "border_default": "#d0d7de",
+        "border_muted": "#d8dee4",
+        "accent": "#0969da",
+        "accent_hover": "#0860ca",
+        "success": "#1a7f37",
+        "warning": "#9a6700",
+        "danger": "#cf222e",
+        "gate_pass": "#1a7f37",
+        "gate_fail": "#cf222e",
+        "gate_environment_failure": "#9a6700"
+      },
+      "dark": {
+        "canvas": "#0d1117",
+        "canvas_subtle": "#161b22",
+        "canvas_inset": "#010409",
+        "text_primary": "#e6edf3",
+        "text_secondary": "#8d96a0",
+        "text_muted": "#6e7681",
+        "border_default": "#30363d",
+        "border_muted": "#21262d",
+        "accent": "#2f81f7",
+        "accent_hover": "#58a6ff",
+        "success": "#3fb950",
+        "warning": "#d29922",
+        "danger": "#f85149",
+        "gate_pass": "#3fb950",
+        "gate_fail": "#f85149",
+        "gate_environment_failure": "#d29922"
+      }
+    },
+    "typography": {
+      "ui_font_stack": "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      "mono_font_stack": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+      "base_font_size": 14,
+      "small_font_size": 12,
+      "body_line_height": 1.5,
+      "heading_weight": 600,
+      "body_weight": 400,
+      "control_weight": 500
+    },
+    "spacing": {
+      "base_unit": 4,
+      "xs": 4,
+      "sm": 8,
+      "md": 16,
+      "lg": 24,
+      "xl": 32,
+      "control_inline_padding": 12,
+      "control_block_padding": 6
+    },
+    "radius_and_shape": {
+      "control_radius": 6,
+      "panel_radius": 6,
+      "dialog_radius": 8,
+      "pill_radius": 9999,
+      "shape_language": "restrained_rounded_rectangles"
+    },
+    "border_and_elevation": {
+      "border_width": 1,
+      "border_style": "solid",
+      "elevation_policy": "border_first_shadow_second",
+      "popover_shadow": "0 8px 24px rgba(140,149,159,0.20)",
+      "dialog_shadow": "0 16px 32px rgba(27,31,36,0.20)"
+    },
+    "iconography_appearance": {
+      "default_size": 16,
+      "small_size": 14,
+      "large_size": 20,
+      "style": "simple_system_icons",
+      "stroke_weight": "medium",
+      "decorative_usage": "minimal"
+    },
+    "visual_density": {
+      "default": "compact",
+      "navigation": "compact",
+      "forms": "compact",
+      "tables": "compact",
+      "evidence_tables": "compact",
+      "dialogs": "comfortable",
+      "touch_target_minimum": 32
+    },
+    "surface_appearance": {
+      "header": "canvas_with_bottom_border",
+      "navigation": "subtle_canvas",
+      "workspace": "canvas",
+      "auxiliary": "subtle_canvas_with_border",
+      "overlay": "canvas_with_border_and_shadow",
+      "code_surface": "subtle_canvas_monospace",
+      "evidence_surface": "inset_bordered_surface",
+      "verdict_surface": "bordered_status_panel"
+    },
+    "component_appearance": {
+      "button_primary": {
+        "background": "accent",
+        "text": "#ffffff",
+        "weight": 500
+      },
+      "button_secondary": {
+        "background": "canvas_subtle",
+        "text": "text_primary",
+        "border": "border_default"
+      },
+      "input": {
+        "background": "canvas",
+        "border": "border_default",
+        "focus_border": "accent",
+        "focus_ring": "accent_translucent"
+      },
+      "tabs": {
+        "inactive": "transparent",
+        "active_indicator": "accent",
+        "active_weight": 600
+      },
+      "table": {
+        "header_background": "canvas_subtle",
+        "row_divider": "border_muted",
+        "hover_background": "canvas_subtle"
+      },
+      "gate_status_badge": {
+        "PASS": "success_pill",
+        "FAIL": "danger_pill",
+        "ENVIRONMENT_FAILURE": "warning_pill"
+      },
+      "rule_status": {
+        "pass": "success_icon_plus_text",
+        "fail": "danger_icon_plus_text",
+        "skipped": "muted_icon_plus_text"
+      },
+      "evidence_ref": {
+        "treatment": "monospace_link",
+        "truncation": "middle_when_long"
+      },
+      "code": {
+        "font": "mono_font_stack",
+        "background": "canvas_subtle",
+        "border": "border_muted"
+      },
+      "dropdown": {
+        "background": "canvas",
+        "border": "border_default",
+        "shadow": "popover"
+      },
+      "dialog": {
+        "background": "canvas",
+        "border": "border_default",
+        "shadow": "dialog"
+      }
+    },
+    "visual_motion_treatment": {
+      "duration_fast_ms": 80,
+      "duration_standard_ms": 160,
+      "easing": "ease-out",
+      "large_motion": "avoid",
+      "layout_animation": "minimal",
+      "reduced_motion": "disable_nonessential_motion"
+    },
+    "appearance_variants": {
+      "default": "light",
+      "supported": [
+        "light",
+        "dark"
+      ],
+      "high_contrast": "token_override_without_structure_change"
+    },
+    "accessibility_visual_requirements": {
+      "focus_indicator": "always_visible_for_keyboard_navigation",
+      "focus_ring_width": 2,
+      "focus_ring_offset": 2,
+      "body_text_contrast_target": "WCAG_AA",
+      "large_text_contrast_target": "WCAG_AA",
+      "color_is_not_sole_state_signal": true,
+      "gate_verdict_requires_text_label": true,
+      "reduced_motion_supported": true,
+      "disabled_state_remains_legible": true
+    }
+  },
+  "content_hash": "sha256:f8a6b551487a748c375130e3c87175ae439314fbfaa841dd21bcb0735541e993"
+}
