@@ -245,47 +245,134 @@ function schemaCompatible(aRaw: UnknownRecord, bRaw: UnknownRecord, root: Unknow
   return true;
 }
 
+const supportedSchemaKeywords = new Set([
+  "$schema", "$id", "$anchor", "$comment", "$defs", "definitions",
+  "$ref", "title", "description", "default", "examples", "deprecated", "readOnly", "writeOnly",
+  "type", "enum", "const",
+  "allOf", "anyOf", "oneOf", "not", "if", "then", "else",
+  "multipleOf", "maximum", "exclusiveMaximum", "minimum", "exclusiveMinimum",
+  "maxLength", "minLength", "pattern", "format",
+  "maxItems", "minItems", "uniqueItems", "maxContains", "minContains", "contains", "prefixItems", "items",
+  "maxProperties", "minProperties", "required", "properties", "patternProperties", "additionalProperties",
+  "dependentRequired", "dependentSchemas", "propertyNames",
+  "contentEncoding", "contentMediaType", "contentSchema",
+  "x_q_field_semantics",
+]);
+
+function unicodeLength(value: string): number {
+  return Array.from(value).length;
+}
+
+function validDate(value: string): boolean {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}
+
+function validFormat(value: string, format: string): boolean {
+  switch (format) {
+    case "date":
+      return validDate(value);
+    case "time":
+      return /^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.test(value);
+    case "date-time": {
+      const index = value.indexOf("T");
+      if (index <= 0) return false;
+      return validDate(value.slice(0, index)) && validFormat(value.slice(index + 1), "time");
+    }
+    case "duration":
+      return /^P(?=\d|T\d)(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?$/.test(value);
+    case "uuid":
+      return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+    case "email":
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    case "uri":
+    case "uri-reference":
+      try { new URL(value, format === "uri-reference" ? "https://q.invalid" : undefined); return true; } catch { return false; }
+    case "hostname":
+      return value.length <= 253 && value.split(".").every((label) => /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$/.test(label));
+    case "ipv4": {
+      const parts = value.split(".");
+      return parts.length === 4 && parts.every((part) => /^(0|[1-9]\d{0,2})$/.test(part) && Number(part) <= 255);
+    }
+    case "regex":
+      try { new RegExp(value); return true; } catch { return false; }
+    case "json-pointer":
+      return value === "" || /^(?:\/(?:[^~/]|~[01])*)+$/.test(value);
+    default:
+      return false;
+  }
+}
+
 function validateSchema(
   value: unknown,
-  rawSchema: UnknownRecord,
+  rawSchema: unknown,
   root: UnknownRecord,
   baseRef: string,
   path = "$",
 ): string[] {
-  const errors: string[] = [];
-  const schema = dereferenceSchema(rawSchema, root, baseRef);
-  if (!schema) return [`${path}:UNRESOLVED_SCHEMA_REF`];
+  if (rawSchema === true) return [];
+  if (rawSchema === false) return [`${path}:FALSE_SCHEMA`];
+  if (!isRecord(rawSchema)) return [`${path}:SCHEMA_NOT_OBJECT_OR_BOOLEAN`];
 
-  if (Array.isArray(schema.anyOf)) {
-    const branches = schema.anyOf.filter(isRecord);
-    if (!branches.some((branch) => validateSchema(value, branch, root, baseRef, path).length === 0)) {
-      errors.push(`${path}:ANY_OF`);
-      return errors;
-    }
+  // Draft 2020-12 permits siblings next to $ref. Validate the referenced schema and every sibling constraint.
+  if (typeof rawSchema.$ref === "string") {
+    const resolved = schemaForContractRef(root, baseRef, rawSchema.$ref);
+    if (!resolved) return [`${path}:UNRESOLVED_SCHEMA_REF`];
+    const errors = validateSchema(value, resolved, root, baseRef, path);
+    const siblings = Object.fromEntries(Object.entries(rawSchema).filter(([key]) => key !== "$ref"));
+    if (Object.keys(siblings).length > 0) errors.push(...validateSchema(value, siblings, root, baseRef, path));
+    return errors;
   }
+
+  const schema = rawSchema;
+  const errors: string[] = [];
+
+  for (const key of Object.keys(schema)) {
+    if (!supportedSchemaKeywords.has(key)) errors.push(`${path}:UNSUPPORTED_SCHEMA_KEYWORD:${key}`);
+  }
+  if (errors.length > 0) return errors;
 
   if (Array.isArray(schema.allOf)) {
-    for (const item of schema.allOf) {
-      if (!isRecord(item)) continue;
-      if (isRecord(item.if)) {
-        const condition = validateSchema(value, item.if, root, baseRef, path).length === 0;
-        if (condition && isRecord(item.then)) {
-          errors.push(...validateSchema(value, item.then, root, baseRef, path));
-        }
-      } else {
-        errors.push(...validateSchema(value, item, root, baseRef, path));
-      }
-    }
+    for (const item of schema.allOf) errors.push(...validateSchema(value, item, root, baseRef, path));
+  } else if (schema.allOf !== undefined) {
+    errors.push(`${path}:SCHEMA_ALL_OF_INVALID`);
   }
 
-  if (Object.prototype.hasOwnProperty.call(schema, "const") && canonicalJson(value) !== canonicalJson(schema.const)) {
-    errors.push(`${path}:CONST`);
+  if (Array.isArray(schema.anyOf)) {
+    if (!schema.anyOf.some((branch) => validateSchema(value, branch, root, baseRef, path).length === 0)) errors.push(`${path}:ANY_OF`);
+  } else if (schema.anyOf !== undefined) {
+    errors.push(`${path}:SCHEMA_ANY_OF_INVALID`);
   }
-  if (Array.isArray(schema.enum) && !schema.enum.some((item) => canonicalJson(item) === canonicalJson(value))) {
-    errors.push(`${path}:ENUM`);
+
+  if (Array.isArray(schema.oneOf)) {
+    const matches = schema.oneOf.filter((branch) => validateSchema(value, branch, root, baseRef, path).length === 0).length;
+    if (matches !== 1) errors.push(`${path}:ONE_OF`);
+  } else if (schema.oneOf !== undefined) {
+    errors.push(`${path}:SCHEMA_ONE_OF_INVALID`);
+  }
+
+  if (schema.not !== undefined && validateSchema(value, schema.not, root, baseRef, path).length === 0) errors.push(`${path}:NOT`);
+
+  if (schema.if !== undefined) {
+    const condition = validateSchema(value, schema.if, root, baseRef, path).length === 0;
+    if (condition && schema.then !== undefined) errors.push(...validateSchema(value, schema.then, root, baseRef, path));
+    if (!condition && schema.else !== undefined) errors.push(...validateSchema(value, schema.else, root, baseRef, path));
+  }
+
+  if (Object.prototype.hasOwnProperty.call(schema, "const") && canonicalJson(value) !== canonicalJson(schema.const)) errors.push(`${path}:CONST`);
+  if (Array.isArray(schema.enum)) {
+    if (!schema.enum.some((item) => canonicalJson(item) === canonicalJson(value))) errors.push(`${path}:ENUM`);
+  } else if (schema.enum !== undefined) {
+    errors.push(`${path}:SCHEMA_ENUM_INVALID`);
   }
 
   const types = schemaTypes(schema);
+  if (schema.type !== undefined && types.length === 0) errors.push(`${path}:SCHEMA_TYPE_INVALID`);
   if (types.length > 0) {
     const matches = types.some((type) => {
       if (type === "null") return value === null;
@@ -304,16 +391,33 @@ function validateSchema(
   }
 
   if (typeof value === "string") {
-    if (typeof schema.minLength === "number" && value.length < schema.minLength) errors.push(`${path}:MIN_LENGTH`);
-    if (typeof schema.pattern === "string" && !(new RegExp(schema.pattern).test(value))) errors.push(`${path}:PATTERN`);
+    const length = unicodeLength(value);
+    if (typeof schema.minLength === "number" && length < schema.minLength) errors.push(`${path}:MIN_LENGTH`);
+    if (typeof schema.maxLength === "number" && length > schema.maxLength) errors.push(`${path}:MAX_LENGTH`);
+    if (typeof schema.pattern === "string") {
+      try { if (!(new RegExp(schema.pattern).test(value))) errors.push(`${path}:PATTERN`); } catch { errors.push(`${path}:SCHEMA_PATTERN_INVALID`); }
+    }
+    if (typeof schema.format === "string" && !validFormat(value, schema.format)) errors.push(`${path}:FORMAT:${schema.format}`);
   }
 
-  if (typeof value === "number" && typeof schema.minimum === "number" && value < schema.minimum) {
-    errors.push(`${path}:MINIMUM`);
+  if (typeof value === "number" && Number.isFinite(value)) {
+    if (typeof schema.minimum === "number" && value < schema.minimum) errors.push(`${path}:MINIMUM`);
+    if (typeof schema.maximum === "number" && value > schema.maximum) errors.push(`${path}:MAXIMUM`);
+    if (typeof schema.exclusiveMinimum === "number" && value <= schema.exclusiveMinimum) errors.push(`${path}:EXCLUSIVE_MINIMUM`);
+    if (typeof schema.exclusiveMaximum === "number" && value >= schema.exclusiveMaximum) errors.push(`${path}:EXCLUSIVE_MAXIMUM`);
+    if (typeof schema.multipleOf === "number") {
+      if (!(schema.multipleOf > 0)) errors.push(`${path}:SCHEMA_MULTIPLE_OF_INVALID`);
+      else {
+        const quotient = value / schema.multipleOf;
+        const tolerance = Number.EPSILON * Math.max(1, Math.abs(quotient)) * 8;
+        if (Math.abs(quotient - Math.round(quotient)) > tolerance) errors.push(`${path}:MULTIPLE_OF`);
+      }
+    }
   }
 
   if (Array.isArray(value)) {
     if (typeof schema.minItems === "number" && value.length < schema.minItems) errors.push(`${path}:MIN_ITEMS`);
+    if (typeof schema.maxItems === "number" && value.length > schema.maxItems) errors.push(`${path}:MAX_ITEMS`);
     if (schema.uniqueItems === true) {
       const seen = new Set<string>();
       for (const item of value) {
@@ -322,32 +426,103 @@ function validateSchema(
         seen.add(key);
       }
     }
-    if (isRecord(schema.items)) {
-      const itemSchema = schema.items;
-      value.forEach((item, index) => errors.push(...validateSchema(item, itemSchema, root, baseRef, `${path}[${index}]`)));
+
+    let prefixCount = 0;
+    if (Array.isArray(schema.prefixItems)) {
+      prefixCount = schema.prefixItems.length;
+      schema.prefixItems.forEach((itemSchema, index) => {
+        if (index < value.length) errors.push(...validateSchema(value[index], itemSchema, root, baseRef, `${path}[${index}]`));
+      });
+    } else if (schema.prefixItems !== undefined) {
+      errors.push(`${path}:SCHEMA_PREFIX_ITEMS_INVALID`);
+    }
+
+    if (schema.items !== undefined) {
+      for (let index = prefixCount; index < value.length; index += 1) {
+        errors.push(...validateSchema(value[index], schema.items, root, baseRef, `${path}[${index}]`));
+      }
+    }
+
+    if (schema.contains !== undefined) {
+      const count = value.filter((item, index) => validateSchema(item, schema.contains, root, baseRef, `${path}[${index}]`).length === 0).length;
+      const minContains = typeof schema.minContains === "number" ? schema.minContains : 1;
+      const maxContains = typeof schema.maxContains === "number" ? schema.maxContains : Number.POSITIVE_INFINITY;
+      if (count < minContains || count > maxContains) errors.push(`${path}:CONTAINS`);
+    } else if (schema.minContains !== undefined || schema.maxContains !== undefined) {
+      errors.push(`${path}:SCHEMA_CONTAINS_BOUNDS_WITHOUT_CONTAINS`);
     }
   }
 
   if (isRecord(value)) {
+    const keys = Object.keys(value);
+    if (typeof schema.minProperties === "number" && keys.length < schema.minProperties) errors.push(`${path}:MIN_PROPERTIES`);
+    if (typeof schema.maxProperties === "number" && keys.length > schema.maxProperties) errors.push(`${path}:MAX_PROPERTIES`);
+
     if (Array.isArray(schema.required)) {
       for (const name of schema.required) {
-        if (typeof name === "string" && !Object.prototype.hasOwnProperty.call(value, name)) {
-          errors.push(`${path}.${name}:REQUIRED`);
+        if (typeof name !== "string") errors.push(`${path}:SCHEMA_REQUIRED_INVALID`);
+        else if (!Object.prototype.hasOwnProperty.call(value, name)) errors.push(`${path}.${name}:REQUIRED`);
+      }
+    } else if (schema.required !== undefined) {
+      errors.push(`${path}:SCHEMA_REQUIRED_INVALID`);
+    }
+
+    const properties = isRecord(schema.properties) ? schema.properties : {};
+    if (schema.properties !== undefined && !isRecord(schema.properties)) errors.push(`${path}:SCHEMA_PROPERTIES_INVALID`);
+
+    const patterns: Array<[RegExp, unknown]> = [];
+    if (isRecord(schema.patternProperties)) {
+      for (const [pattern, childSchema] of Object.entries(schema.patternProperties)) {
+        try { patterns.push([new RegExp(pattern), childSchema]); } catch { errors.push(`${path}:SCHEMA_PATTERN_PROPERTY_INVALID:${pattern}`); }
+      }
+    } else if (schema.patternProperties !== undefined) {
+      errors.push(`${path}:SCHEMA_PATTERN_PROPERTIES_INVALID`);
+    }
+
+    for (const key of keys) {
+      let evaluated = false;
+      if (Object.prototype.hasOwnProperty.call(properties, key)) {
+        errors.push(...validateSchema(value[key], properties[key], root, baseRef, `${path}.${key}`));
+        evaluated = true;
+      }
+      for (const [pattern, childSchema] of patterns) {
+        if (pattern.test(key)) {
+          errors.push(...validateSchema(value[key], childSchema, root, baseRef, `${path}.${key}`));
+          evaluated = true;
         }
       }
-    }
-    const properties = isRecord(schema.properties) ? schema.properties : {};
-    if (schema.additionalProperties === false) {
-      for (const key of Object.keys(value)) {
-        if (!Object.prototype.hasOwnProperty.call(properties, key)) errors.push(`${path}.${key}:ADDITIONAL_PROPERTY`);
+      if (!evaluated && schema.additionalProperties !== undefined) {
+        if (schema.additionalProperties === false) errors.push(`${path}.${key}:ADDITIONAL_PROPERTY`);
+        else if (schema.additionalProperties !== true) errors.push(...validateSchema(value[key], schema.additionalProperties, root, baseRef, `${path}.${key}`));
       }
     }
-    for (const [key, childSchema] of Object.entries(properties)) {
-      if (Object.prototype.hasOwnProperty.call(value, key) && isRecord(childSchema)) {
-        errors.push(...validateSchema(value[key], childSchema, root, baseRef, `${path}.${key}`));
+
+    if (schema.propertyNames !== undefined) {
+      for (const key of keys) errors.push(...validateSchema(key, schema.propertyNames, root, baseRef, `${path}{propertyName:${key}}`));
+    }
+
+    if (isRecord(schema.dependentRequired)) {
+      for (const [key, requiredNames] of Object.entries(schema.dependentRequired)) {
+        if (!Object.prototype.hasOwnProperty.call(value, key)) continue;
+        if (!Array.isArray(requiredNames) || !requiredNames.every((name) => typeof name === "string")) {
+          errors.push(`${path}:SCHEMA_DEPENDENT_REQUIRED_INVALID:${key}`);
+          continue;
+        }
+        for (const name of requiredNames) if (!Object.prototype.hasOwnProperty.call(value, name)) errors.push(`${path}.${name}:DEPENDENT_REQUIRED:${key}`);
       }
+    } else if (schema.dependentRequired !== undefined) {
+      errors.push(`${path}:SCHEMA_DEPENDENT_REQUIRED_INVALID`);
+    }
+
+    if (isRecord(schema.dependentSchemas)) {
+      for (const [key, dependentSchema] of Object.entries(schema.dependentSchemas)) {
+        if (Object.prototype.hasOwnProperty.call(value, key)) errors.push(...validateSchema(value, dependentSchema, root, baseRef, path));
+      }
+    } else if (schema.dependentSchemas !== undefined) {
+      errors.push(`${path}:SCHEMA_DEPENDENT_SCHEMAS_INVALID`);
     }
   }
+
   return errors;
 }
 
@@ -422,6 +597,132 @@ function validateSourceLineage(request: ResolveUiModuleRequest, source: UnknownR
   return true;
 }
 
+function refTerminal(ref: string): string {
+  const index = ref.lastIndexOf("/");
+  return index >= 0 ? decodePointerSegment(ref.slice(index + 1)) : ref;
+}
+
+function directRefObject(section: unknown, field: string, ref: string): UnknownRecord | undefined {
+  if (!isRecord(section)) return undefined;
+  const matches = Object.values(section).filter((item) => isRecord(item) && item[field] === ref) as UnknownRecord[];
+  return matches.length === 1 ? matches[0] : undefined;
+}
+
+function sourceOperationRefSet(source: UnknownRecord): Set<string> {
+  if (!isRecord(source.operations)) return new Set();
+  return new Set(Object.values(source.operations)
+    .filter(isRecord)
+    .map((operation) => operation.operation_ref)
+    .filter((ref): ref is string => typeof ref === "string"));
+}
+
+function sourceInterfaceRefSet(source: UnknownRecord): Set<string> {
+  if (!isRecord(source.interfaces)) return new Set();
+  return new Set(Object.values(source.interfaces)
+    .filter(isRecord)
+    .map((iface) => iface.interface_ref)
+    .filter((ref): ref is string => typeof ref === "string"));
+}
+
+function sourceCapabilityRuleRefs(source: UnknownRecord): Set<string> {
+  const rules = isRecord(source.capability_rules) && Array.isArray(source.capability_rules.rules)
+    ? source.capability_rules.rules
+    : [];
+  return new Set(rules.filter(isRecord).map((rule) => rule.rule_ref).filter((ref): ref is string => typeof ref === "string"));
+}
+
+function sourceTransitionRefs(source: UnknownRecord): Set<string> {
+  const refs = new Set<string>();
+  const model = source.state_model;
+  if (!isRecord(model) || !Array.isArray(model.state_machines)) return refs;
+  for (const machine of model.state_machines) {
+    if (!isRecord(machine) || !Array.isArray(machine.transitions)) continue;
+    for (const transition of machine.transitions) {
+      if (isRecord(transition) && typeof transition.transition_ref === "string") refs.add(transition.transition_ref);
+    }
+  }
+  return refs;
+}
+
+function sourcePermissionRefs(source: UnknownRecord): Set<string> {
+  const refs = new Set<string>();
+  const model = source.permission_model;
+  if (!isRecord(model) || !Array.isArray(model.operation_permission_bindings)) return refs;
+  for (const binding of model.operation_permission_bindings) {
+    if (isRecord(binding) && typeof binding.permission_ref === "string") refs.add(binding.permission_ref);
+  }
+  return refs;
+}
+
+function sourceActorClassRefs(source: UnknownRecord): Set<string> {
+  const refs = new Set<string>();
+  const model = source.permission_model;
+  if (!isRecord(model) || !Array.isArray(model.actor_classes)) return refs;
+  for (const actor of model.actor_classes) {
+    if (isRecord(actor) && typeof actor.actor_class_ref === "string") refs.add(actor.actor_class_ref);
+  }
+  return refs;
+}
+
+function sourceRelationRefs(source: UnknownRecord): Set<string> {
+  const refs = new Set<string>();
+  const model = source.operational_relations;
+  if (!isRecord(model) || !Array.isArray(model.relations)) return refs;
+  for (const relation of model.relations) {
+    if (isRecord(relation) && typeof relation.relation_ref === "string") refs.add(relation.relation_ref);
+  }
+  return refs;
+}
+
+function validateExactSourceOwnership(source: UnknownRecord, sourceRef: string): boolean {
+  const identity = source.identity;
+  if (!isRecord(identity) || identity.capability_contract_ref !== sourceRef) return false;
+  if (!isRecord(source.operations) || !isRecord(source.interfaces) || !isRecord(source.contracts) || !isRecord(source.stable_errors)) return false;
+
+  const operationRefs = new Set<string>();
+  for (const [memberKey, operation] of Object.entries(source.operations)) {
+    if (!isRecord(operation)) return false;
+    const operationRef = operation.operation_ref;
+    if (typeof operationRef !== "string" || !operationRef.startsWith(`${sourceRef}#/operations/`)) return false;
+    if (operation.operation_id !== memberKey || refTerminal(operationRef) !== memberKey || operationRefs.has(operationRef)) return false;
+    operationRefs.add(operationRef);
+    if (operation.interface_refs !== undefined && !isStringArray(operation.interface_refs)) return false;
+  }
+
+  const interfaceRefs = new Set<string>();
+  for (const [memberKey, iface] of Object.entries(source.interfaces)) {
+    if (!isRecord(iface)) return false;
+    const interfaceRef = iface.interface_ref;
+    if (typeof interfaceRef !== "string" || !interfaceRef.startsWith(`${sourceRef}#/interfaces/`)) return false;
+    if (refTerminal(interfaceRef) !== memberKey || interfaceRefs.has(interfaceRef)) return false;
+    interfaceRefs.add(interfaceRef);
+    if (typeof iface.operation_ref !== "string" || !operationRefs.has(iface.operation_ref)) return false;
+    if (typeof iface.request_contract_ref !== "string" || !iface.request_contract_ref.startsWith(`${sourceRef}#/contracts/`)) return false;
+    if (typeof iface.response_contract_ref !== "string" || !iface.response_contract_ref.startsWith(`${sourceRef}#/contracts/`)) return false;
+    if (typeof iface.stable_error_contract_ref !== "string" || !iface.stable_error_contract_ref.startsWith(`${sourceRef}#/stable_errors/`)) return false;
+    if (!schemaForContractRef(source, sourceRef, iface.request_contract_ref)) return false;
+    if (!schemaForContractRef(source, sourceRef, iface.response_contract_ref)) return false;
+    if (!resolveDeclaredObject(source, sourceRef, iface.stable_error_contract_ref, ["contract_ref"])) return false;
+
+    const owner = directRefObject(source.operations, "operation_ref", iface.operation_ref);
+    if (!owner) return false;
+    if (Array.isArray(owner.interface_refs) && !owner.interface_refs.includes(interfaceRef)) return false;
+  }
+
+  for (const operation of Object.values(source.operations)) {
+    if (!isRecord(operation) || !Array.isArray(operation.interface_refs)) continue;
+    for (const interfaceRef of operation.interface_refs) {
+      if (typeof interfaceRef !== "string" || !interfaceRefs.has(interfaceRef)) return false;
+      const iface = directRefObject(source.interfaces, "interface_ref", interfaceRef);
+      if (!iface || iface.operation_ref !== operation.operation_ref) return false;
+    }
+  }
+
+  const providerRefs = providerInterfaceRefs(source);
+  if (new Set(providerRefs).size !== providerRefs.length || providerRefs.some((ref) => !interfaceRefs.has(ref))) return false;
+  return true;
+}
+
 function validateSourceSemanticProjection(source: UnknownRecord, sourceRef: string): boolean {
   for (const section of requiredSourceSections) {
     if (!Object.prototype.hasOwnProperty.call(source, section)) return false;
@@ -441,7 +742,7 @@ function validateSourceSemanticProjection(source: UnknownRecord, sourceRef: stri
   if (!versionMatch) return false;
   const version = Number(versionMatch[1]);
   if (version >= 113 && !Object.prototype.hasOwnProperty.call(source, "instance_variability")) return false;
-  return true;
+  return validateExactSourceOwnership(source, sourceRef);
 }
 
 function validatePresentationBoundary(source: UnknownRecord): boolean {
@@ -992,6 +1293,172 @@ function projectOperations(
   return { operations, actions };
 }
 
+function exactDependencyObject(source: UnknownRecord, ref: string): UnknownRecord | undefined {
+  if (!isRecord(source.dependencies)) return undefined;
+  const matches = Object.values(source.dependencies).filter((dependency) =>
+    isRecord(dependency)
+    && [dependency.local_dependency_ref, dependency.dependency_ref, dependency.ref].some((value) => value === ref)
+  ) as UnknownRecord[];
+  return matches.length === 1 ? matches[0] : undefined;
+}
+
+function validateOperationalRelationClosure(source: UnknownRecord, sourceRef: string): boolean {
+  const model = source.operational_relations;
+  if (!isRecord(model) || !Array.isArray(model.relations) || !Array.isArray(model.operation_dependency_bindings)) return false;
+  if (!['NONE', 'DECLARED'].includes(String(model.mode))) return false;
+  if (model.mode === 'NONE') return model.relations.length === 0 && model.operation_dependency_bindings.length === 0;
+
+  const operationRefs = sourceOperationRefSet(source);
+  const relationRefs = new Set<string>();
+  for (const relation of model.relations) {
+    if (!isRecord(relation)) return false;
+    const required = [
+      'relation_ref', 'consumer_operation_ref', 'local_dependency_ref', 'provider_capability_contract_ref',
+      'provider_operation_ref', 'provider_interface_ref',
+    ] as const;
+    if (!required.every((key) => typeof relation[key] === 'string' && String(relation[key]).length > 0)) return false;
+    const relationRef = relation.relation_ref as string;
+    if (!relationRef.startsWith(`${sourceRef}#/operational_relations/`) || relationRefs.has(relationRef)) return false;
+    relationRefs.add(relationRef);
+    if (!operationRefs.has(relation.consumer_operation_ref as string)) return false;
+
+    const dependency = exactDependencyObject(source, relation.local_dependency_ref as string);
+    if (!dependency) return false;
+    const providerRef = relation.provider_capability_contract_ref as string;
+    const declaredProviderRefs = [
+      dependency.provider_capability_contract_ref,
+      dependency.dependency_contract_ref,
+      dependency.provider_contract_ref,
+      dependency.reference_owner_ref,
+    ].filter((value): value is string => typeof value === 'string');
+    if (declaredProviderRefs.length === 0 || !declaredProviderRefs.includes(providerRef)) return false;
+
+    // When provider Operation/Interface refs are owner-local, their exact internal relationship must also close.
+    if ((relation.provider_operation_ref as string).startsWith(`${sourceRef}#/operations/`)) {
+      const operation = directRefObject(source.operations, 'operation_ref', relation.provider_operation_ref as string);
+      if (!operation) return false;
+    }
+    if ((relation.provider_interface_ref as string).startsWith(`${sourceRef}#/interfaces/`)) {
+      const iface = directRefObject(source.interfaces, 'interface_ref', relation.provider_interface_ref as string);
+      if (!iface || iface.operation_ref !== relation.provider_operation_ref) return false;
+    }
+  }
+
+  for (const binding of model.operation_dependency_bindings) {
+    if (!isRecord(binding)) return false;
+    if (typeof binding.consumer_operation_ref === 'string' && !operationRefs.has(binding.consumer_operation_ref)) return false;
+    if (typeof binding.local_dependency_ref === 'string' && !exactDependencyObject(source, binding.local_dependency_ref)) return false;
+    if (typeof binding.relation_ref === 'string' && !relationRefs.has(binding.relation_ref)) return false;
+  }
+  return true;
+}
+
+function validateStateModelClosure(source: UnknownRecord, sourceRef: string): boolean {
+  const model = source.state_model;
+  if (!isRecord(model) || !Array.isArray(model.state_machines)) return false;
+  if (!['STATELESS', 'STATEFUL'].includes(String(model.mode))) return false;
+  if (model.mode === 'STATELESS') return model.state_machines.length === 0;
+
+  const operationRefs = sourceOperationRefSet(source);
+  const machineRefs = new Set<string>();
+  const transitionRefs = new Set<string>();
+  for (const machine of model.state_machines) {
+    if (!isRecord(machine)) return false;
+    if (typeof machine.state_machine_ref !== 'string' || !machine.state_machine_ref.startsWith(`${sourceRef}#/state_model/`)) return false;
+    if (machineRefs.has(machine.state_machine_ref)) return false;
+    machineRefs.add(machine.state_machine_ref);
+    if (typeof machine.subject_schema_ref !== 'string' || !schemaForContractRef(source, sourceRef, machine.subject_schema_ref)) return false;
+    if (!isStringArray(machine.subject_identity_field_path) || !isStringArray(machine.state_field_path)) return false;
+    if (typeof machine.initial_state !== 'string' || !isStringArray(machine.allowed_business_states)) return false;
+    if (!machine.allowed_business_states.includes(machine.initial_state)) return false;
+    if (!Array.isArray(machine.operation_state_bindings) || !Array.isArray(machine.transitions)) return false;
+
+    for (const binding of machine.operation_state_bindings) {
+      if (!isRecord(binding) || typeof binding.operation_ref !== 'string' || !operationRefs.has(binding.operation_ref)) return false;
+      if (binding.allowed_states !== undefined) {
+        if (!isStringArray(binding.allowed_states) || binding.allowed_states.some((state) => !(machine.allowed_business_states as string[]).includes(state))) return false;
+      }
+    }
+
+    for (const transition of machine.transitions) {
+      if (!isRecord(transition)) return false;
+      if (typeof transition.transition_ref !== 'string' || !transition.transition_ref.startsWith(`${sourceRef}#/state_model/`)) return false;
+      if (transitionRefs.has(transition.transition_ref)) return false;
+      transitionRefs.add(transition.transition_ref);
+      if (typeof transition.operation_ref !== 'string' || !operationRefs.has(transition.operation_ref)) return false;
+      if (!isStringArray(transition.from_states) || transition.from_states.some((state) => !(machine.allowed_business_states as string[]).includes(state))) return false;
+      if (typeof transition.to_state !== 'string' || !(machine.allowed_business_states as string[]).includes(transition.to_state)) return false;
+    }
+  }
+  return true;
+}
+
+function validatePermissionModelClosure(source: UnknownRecord, sourceRef: string): boolean {
+  const model = source.permission_model;
+  if (!isRecord(model) || !Array.isArray(model.actor_classes) || !Array.isArray(model.operation_permission_bindings)) return false;
+  if (!['UNRESTRICTED', 'DECLARED'].includes(String(model.mode))) return false;
+  const operationRefs = sourceOperationRefSet(source);
+  const ruleRefs = sourceCapabilityRuleRefs(source);
+  const actorRefs = new Set<string>();
+  for (const actor of model.actor_classes) {
+    if (!isRecord(actor) || typeof actor.actor_class_ref !== 'string' || !actor.actor_class_ref.startsWith(`${sourceRef}#/permission_model/`)) return false;
+    if (actorRefs.has(actor.actor_class_ref)) return false;
+    actorRefs.add(actor.actor_class_ref);
+    if (!['BUSINESS_REFERENCE', 'EXTERNAL_AUTHORITY'].includes(String(actor.identity_source_kind))) return false;
+  }
+
+  const permissionRefs = new Set<string>();
+  for (const binding of model.operation_permission_bindings) {
+    if (!isRecord(binding)) return false;
+    if (typeof binding.permission_ref !== 'string' || !binding.permission_ref.startsWith(`${sourceRef}#/permission_model/`)) return false;
+    if (permissionRefs.has(binding.permission_ref)) return false;
+    permissionRefs.add(binding.permission_ref);
+    if (typeof binding.operation_ref !== 'string' || !operationRefs.has(binding.operation_ref)) return false;
+    if (!['UNRESTRICTED', 'RESTRICTED'].includes(String(binding.access_mode))) return false;
+    if (!isStringArray(binding.actor_class_refs) && !(Array.isArray(binding.actor_class_refs) && binding.actor_class_refs.length === 0)) return false;
+    if ((binding.actor_class_refs as string[]).some((ref) => !actorRefs.has(ref))) return false;
+    if (!isStringArray(binding.authorization_rule_refs) && !(Array.isArray(binding.authorization_rule_refs) && binding.authorization_rule_refs.length === 0)) return false;
+    if ((binding.authorization_rule_refs as string[]).some((ref) => !ruleRefs.has(ref))) return false;
+    if (model.mode === 'UNRESTRICTED' && binding.access_mode !== 'UNRESTRICTED') return false;
+  }
+  return true;
+}
+
+function validateRuleBindingClosure(source: UnknownRecord): boolean {
+  const model = source.rule_bindings;
+  if (!isRecord(model) || !Array.isArray(model.bindings)) return false;
+  if (!['NONE', 'DECLARED'].includes(String(model.mode))) return false;
+  if (typeof model.binding_count !== 'number' || model.binding_count !== model.bindings.length) return false;
+  if (model.mode === 'NONE') return model.bindings.length === 0;
+
+  const ruleRefs = sourceCapabilityRuleRefs(source);
+  const operationRefs = sourceOperationRefSet(source);
+  const transitionRefs = sourceTransitionRefs(source);
+  const relationRefs = sourceRelationRefs(source);
+  const permissionRefs = sourcePermissionRefs(source);
+  const actorRefs = sourceActorClassRefs(source);
+  const phases = new Set(['REQUEST_VALIDATION','PRECONDITION','DEPENDENCY_PRECONDITION','AUTHORIZATION','STATE_GUARD','POSTCONDITION','EVIDENCE_ONLY','INFORMATIONAL']);
+  const modes = new Set(['OPERATION_ENFORCED','DEPENDENCY_DECISION','HUMAN_DECISION','INFORMATIONAL']);
+
+  for (const binding of model.bindings) {
+    if (!isRecord(binding) || typeof binding.rule_ref !== 'string' || !ruleRefs.has(binding.rule_ref)) return false;
+    if (!phases.has(String(binding.enforcement_phase)) || !modes.has(String(binding.evaluation_realization_mode))) return false;
+    const targetOperations = exactStringList(binding.target_operation_refs);
+    const targetTransitions = exactStringList(binding.target_transition_refs);
+    const targetRelations = exactStringList(binding.target_operational_relation_refs);
+    const targetPermissions = exactStringList(binding.target_permission_refs);
+    if (!targetOperations || !targetTransitions || !targetRelations || !targetPermissions || !Array.isArray(binding.target_field_bindings)) return false;
+    if (targetOperations.some((ref) => !operationRefs.has(ref))) return false;
+    if (targetTransitions.some((ref) => !transitionRefs.has(ref))) return false;
+    if (targetRelations.some((ref) => !relationRefs.has(ref))) return false;
+    if (targetPermissions.some((ref) => !permissionRefs.has(ref))) return false;
+    if (binding.target_field_bindings.some((item) => !isRecord(item))) return false;
+    if (binding.decision_operational_relation_ref !== null && (typeof binding.decision_operational_relation_ref !== 'string' || !relationRefs.has(binding.decision_operational_relation_ref))) return false;
+    if (!Array.isArray(binding.human_decision_actor_class_refs) || binding.human_decision_actor_class_refs.some((ref) => typeof ref !== 'string' || !actorRefs.has(ref))) return false;
+  }
+  return true;
+}
+
 function stateBindings(source: UnknownRecord): UiStateBinding[] {
   const out: UiStateBinding[] = [];
   const model = source.state_model;
@@ -999,9 +1466,8 @@ function stateBindings(source: UnknownRecord): UiStateBinding[] {
   if (!Array.isArray(model.state_machines)) throw new StableProjectionError("UI_MODULE_STATE_MODEL_PROJECTION_INVALID");
   model.state_machines.forEach((machine, machineIndex) => {
     if (!isRecord(machine)) throw new StableProjectionError("UI_MODULE_STATE_MODEL_PROJECTION_INVALID");
-    const path = Array.isArray(machine.state_field_path) && machine.state_field_path.every((x) => typeof x === "string")
-      ? machine.state_field_path as string[]
-      : ["state_model", "state_machines", String(machineIndex)];
+    if (!isStringArray(machine.state_field_path)) throw new StableProjectionError("UI_MODULE_STATE_MODEL_PROJECTION_INVALID");
+    const path = machine.state_field_path as string[];
     const bindings = Array.isArray(machine.operation_state_bindings) ? machine.operation_state_bindings : [];
     for (const binding of bindings) {
       if (!isRecord(binding)) throw new StableProjectionError("UI_MODULE_STATE_MODEL_PROJECTION_INVALID");
@@ -1046,6 +1512,22 @@ function evidenceViews(source: UnknownRecord): UiEvidenceViewBinding[] {
 }
 
 function logicProjection(source: UnknownRecord): UiLogicGraphProjection {
+  const sourceRef = isRecord(source.identity) && typeof source.identity.capability_contract_ref === "string"
+    ? source.identity.capability_contract_ref
+    : "";
+  if (!sourceRef || !validateOperationalRelationClosure(source, sourceRef)) {
+    throw new StableProjectionError("UI_MODULE_OPERATIONAL_RELATION_PROJECTION_INVALID");
+  }
+  if (!validateStateModelClosure(source, sourceRef)) {
+    throw new StableProjectionError("UI_MODULE_STATE_MODEL_PROJECTION_INVALID");
+  }
+  if (!validatePermissionModelClosure(source, sourceRef)) {
+    throw new StableProjectionError("UI_MODULE_PERMISSION_MODEL_PROJECTION_INVALID");
+  }
+  if (!validateRuleBindingClosure(source)) {
+    throw new StableProjectionError("UI_MODULE_RULE_BINDING_PROJECTION_INVALID");
+  }
+
   const operationalRelations: UiOperationalRelationProjection[] = [];
   const stateMachines: UiStateMachineProjection[] = [];
   const stateTransitions: UiStateTransitionProjection[] = [];
@@ -1331,37 +1813,31 @@ function evaluateRule(
     case "UI_MODULE.R033":
       return validateSourceSemanticProjection(source, sourceRef);
     case "UI_MODULE.R034":
-      return canonicalJson(artifact.logic_projection.operational_relations.map((x) => x.source_relation_semantics))
-        === canonicalJson((isRecord(source.operational_relations) && Array.isArray(source.operational_relations.relations)) ? source.operational_relations.relations : []);
-    case "UI_MODULE.R035":
+      return validateOperationalRelationClosure(source, sourceRef)
+        && canonicalJson(artifact.logic_projection.operational_relations.map((x) => x.source_relation_semantics))
+          === canonicalJson((isRecord(source.operational_relations) && Array.isArray(source.operational_relations.relations)) ? source.operational_relations.relations : []);
+    case "UI_MODULE.R035": {
+      if (!validateStateModelClosure(source, sourceRef)) return false;
+      const sourceMachines = isRecord(source.state_model) && Array.isArray(source.state_model.state_machines) ? source.state_model.state_machines : [];
+      const sourceTransitions = sourceMachines.flatMap((machine) => isRecord(machine) && Array.isArray(machine.transitions) ? machine.transitions : []);
       return artifact.logic_projection.status === "COMPLETE"
-        && artifact.logic_projection.state_machines.length === (
-          isRecord(source.state_model) && Array.isArray(source.state_model.state_machines) ? source.state_model.state_machines.length : 0
-        );
-    case "UI_MODULE.R036":
-      return artifact.logic_projection.permissions.length === (
-        isRecord(source.permission_model) && Array.isArray(source.permission_model.operation_permission_bindings)
-          ? source.permission_model.operation_permission_bindings.length
-          : 0
-      )
-        && artifact.logic_projection.actor_classes.length === (
-          isRecord(source.permission_model) && Array.isArray(source.permission_model.actor_classes)
-            ? source.permission_model.actor_classes.length
-            : 0
-        );
-    case "UI_MODULE.R037":
-      return artifact.logic_projection.rule_bindings.length === (
-        isRecord(source.rule_bindings) && Array.isArray(source.rule_bindings.bindings) ? source.rule_bindings.bindings.length : 0
-      )
-        && artifact.logic_projection.rule_bindings.every((binding) => {
-          const sourceBinding = (source.rule_bindings as UnknownRecord).bindings;
-          return Array.isArray(sourceBinding) && sourceBinding.some((x) =>
-            isRecord(x)
-            && x.rule_ref === binding.source_rule_ref
-            && x.enforcement_phase === binding.source_enforcement_phase
-            && x.evaluation_realization_mode === binding.source_evaluation_realization_mode
-          );
-        });
+        && canonicalJson(artifact.logic_projection.state_machines.map((x) => x.source_state_machine_semantics)) === canonicalJson(sourceMachines)
+        && canonicalJson(artifact.logic_projection.state_transitions.map((x) => x.source_transition_semantics)) === canonicalJson(sourceTransitions);
+    }
+    case "UI_MODULE.R036": {
+      if (!validatePermissionModelClosure(source, sourceRef)) return false;
+      const sourcePermissions = isRecord(source.permission_model) && Array.isArray(source.permission_model.operation_permission_bindings)
+        ? source.permission_model.operation_permission_bindings : [];
+      const sourceActors = isRecord(source.permission_model) && Array.isArray(source.permission_model.actor_classes)
+        ? source.permission_model.actor_classes : [];
+      return canonicalJson(artifact.logic_projection.permissions.map((x) => x.source_permission_semantics)) === canonicalJson(sourcePermissions)
+        && canonicalJson(artifact.logic_projection.actor_classes.map((x) => x.source_actor_class_semantics)) === canonicalJson(sourceActors);
+    }
+    case "UI_MODULE.R037": {
+      if (!validateRuleBindingClosure(source)) return false;
+      const sourceBindings = isRecord(source.rule_bindings) && Array.isArray(source.rule_bindings.bindings) ? source.rule_bindings.bindings : [];
+      return canonicalJson(artifact.logic_projection.rule_bindings.map((x) => x.source_rule_binding_semantics)) === canonicalJson(sourceBindings);
+    }
     case "UI_MODULE.R038":
       return artifact.logic_projection.status === "COMPLETE"
         && evaluateRule("UI_MODULE.R034", request, source, artifact)

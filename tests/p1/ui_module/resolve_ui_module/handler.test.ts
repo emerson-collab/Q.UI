@@ -1095,3 +1095,130 @@ test("adversarial: non-empty logic graph is projected losslessly", async () => {
     source.rule_bindings.bindings[0],
   );
 });
+
+test("adversarial: lookup request template must satisfy exact maxLength constraint", async () => {
+  const request = requestFixture();
+  const source = request.projection_input.source_capability_semantic_projection;
+  source.contracts.lookup_items_request.schema.properties.query.maxLength = 0;
+  source.contracts.edit_item_request.schema.properties.candidate_id.x_q_field_semantics.lookup_request_input_template = { query: "X" };
+  const outcome = await resolve_ui_module(request);
+  assert.equal(outcome.outcome_type, "stable_error");
+  if (outcome.outcome_type !== "stable_error") throw new Error("expected stable_error");
+  assert.equal(outcome.stable_error.code, "UI_MODULE_REFERENCE_BINDING_INVALID");
+});
+
+test("adversarial: state machine missing state_field_path fails closed", async () => {
+  const request = requestFixture();
+  const source = request.projection_input.source_capability_semantic_projection;
+  const ref = source.identity.capability_contract_ref;
+  source.state_model = {
+    mode: "STATEFUL",
+    state_machines: [{
+      state_machine_ref: `${ref}#/state_model/state_machines/item`,
+      subject_schema_ref: source.contracts.edit_item_response.contract_ref,
+      subject_identity_field_path: ["item", "id"],
+      initial_state: "OPEN",
+      allowed_business_states: ["OPEN", "CLOSED"],
+      operation_state_bindings: [{
+        operation_ref: source.operations.edit_item.operation_ref,
+        availability_mode: "STATE_GUARDED",
+        allowed_states: ["OPEN"],
+      }],
+      transitions: [{
+        transition_ref: `${ref}#/state_model/state_machines/item/transitions/close`,
+        operation_ref: source.operations.edit_item.operation_ref,
+        from_states: ["OPEN"],
+        to_state: "CLOSED",
+      }],
+    }],
+  };
+  const outcome = await resolve_ui_module(request);
+  assert.equal(outcome.outcome_type, "stable_error");
+  if (outcome.outcome_type !== "stable_error") throw new Error("expected stable_error");
+  assert.equal(outcome.stable_error.code, "UI_MODULE_STATE_MODEL_PROJECTION_INVALID");
+});
+
+test("adversarial: rule binding target_operation_ref must resolve exactly", async () => {
+  const request = requestFixture();
+  const source = request.projection_input.source_capability_semantic_projection;
+  const ref = source.identity.capability_contract_ref;
+  source.capability_rules = {
+    rule_count: 1,
+    rules: [{
+      rule_id: "TARGET_CHECK",
+      rule_ref: `${ref}#/capability_rules/rule/TARGET_CHECK`,
+      rule_version: "V0126",
+      sequence: 1,
+      assertion: "Target refs remain exact.",
+      status: "active",
+    }],
+  };
+  source.rule_bindings = {
+    mode: "DECLARED",
+    binding_count: 1,
+    bindings: [{
+      rule_ref: `${ref}#/capability_rules/rule/TARGET_CHECK`,
+      enforcement_phase: "PRECONDITION",
+      evaluation_realization_mode: "OPERATION_ENFORCED",
+      target_operation_refs: [`${ref}#/operations/DOES_NOT_EXIST`],
+      target_field_bindings: [],
+      target_transition_refs: [],
+      target_operational_relation_refs: [],
+      target_permission_refs: [],
+      decision_operational_relation_ref: null,
+      decision_consumer_binding_key: null,
+      human_decision_actor_class_refs: [],
+      human_decision_field_binding: null,
+      human_allow_values: [],
+      human_deny_values: [],
+      failure_stable_error_code: "SOURCE_DENIED",
+    }],
+  };
+  const outcome = await resolve_ui_module(request);
+  assert.equal(outcome.outcome_type, "stable_error");
+  if (outcome.outcome_type !== "stable_error") throw new Error("expected stable_error");
+  assert.equal(outcome.stable_error.code, "UI_MODULE_RULE_BINDING_PROJECTION_INVALID");
+});
+
+test("adversarial: operational relation local_dependency_ref must resolve exactly", async () => {
+  const request = requestFixture();
+  const source = request.projection_input.source_capability_semantic_projection;
+  const ref = source.identity.capability_contract_ref;
+  source.dependencies = {};
+  source.operational_relations = {
+    mode: "DECLARED",
+    relations: [{
+      relation_ref: `${ref}#/operational_relations/relations/missing`,
+      consumer_operation_ref: source.operations.edit_item.operation_ref,
+      local_dependency_ref: `${ref}#/dependencies/missing`,
+      provider_capability_contract_ref: `${ref}#/embedded_provider`,
+      provider_operation_ref: source.operations.read_item.operation_ref,
+      provider_interface_ref: source.interfaces.read_item_invoke.interface_ref,
+      connection_mode: "CALL",
+      request_mapping: [],
+      response_mapping: [],
+      invocation_mode: "SINGLE",
+      response_aggregation: "SINGLE",
+    }],
+    operation_dependency_bindings: [],
+  };
+  const outcome = await resolve_ui_module(request);
+  assert.equal(outcome.outcome_type, "stable_error");
+  if (outcome.outcome_type !== "stable_error") throw new Error("expected stable_error");
+  assert.equal(outcome.stable_error.code, "UI_MODULE_OPERATIONAL_RELATION_PROJECTION_INVALID");
+});
+
+test("adversarial: foreign Operation cannot be reclassified as an exact source Operation", async () => {
+  const request = requestFixture();
+  const source = request.projection_input.source_capability_semantic_projection;
+  const foreign = "Q.OTHER.CONTRACT.CAPABILITY.BAD@V0126#/operations/read_item";
+  source.operations.read_item.operation_ref = foreign;
+  source.interfaces.read_item_invoke.operation_ref = foreign;
+  source.contracts.edit_item_request.schema.properties.owner_id.x_q_field_semantics.read_operation_ref = foreign;
+  source.contracts.edit_item_request.schema.properties.candidate_id.x_q_field_semantics.read_operation_ref = foreign;
+  source.permission_model.operation_permission_bindings[0].operation_ref = foreign;
+  const outcome = await resolve_ui_module(request);
+  assert.equal(outcome.outcome_type, "stable_error");
+  if (outcome.outcome_type !== "stable_error") throw new Error("expected stable_error");
+  assert.equal(outcome.stable_error.code, "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID");
+});
