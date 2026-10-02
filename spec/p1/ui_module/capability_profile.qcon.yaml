@@ -1,25 +1,22 @@
-capability_ref: Q.UI.CAPABILITY.UI_MODULE@V0123
-capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123
-capability_contract_hash: sha256:934b2f09e364bc533eba81d5a003debafec0af97e947bac9a7b22226f2b067ff
+q_header: '1'
+capability_ref: Q.UI.CAPABILITY.UI_MODULE@V0126
 capability_id: ui_module
-capability_version: V0123
-mode: PUBLICATION_ELIGIBLE
-public_operation_refs:
-- Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/operations/resolve_ui_module
-public_interface_refs:
-- Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/interfaces/ui_module_resolution_invoke
-runtime_contract_ref: Q.SS.STD.P0.CONTRACT.RUNTIME_CORE@V0134
-stage_contract_ref: Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0183
-public_entry_ref: src/p1/export/ui_module/entry.ts#entry
-metadata_ref: src/p1/export/ui_module/metadata.ts#capability_extraction_metadata
-direct_handler_export_forbidden: true
-source_operation_reexecution_for_extraction_forbidden: true
-public_collections_are_derived_from_exact_external_provider_surface: true
-dependencies:
-  local_dependencies: []
-  external_dependencies: []
-  source_capability_material_is_request_artifact_input: true
-  source_capability_material_is_declared_local_dependency: false
-  source_capability_artifact_input_does_not_authorize_source_operation_execution: true
-fixed_skeleton_mutation_forbidden: true
-extra_operation_file_forbidden_by_default: true
+capability_version: V0126
+capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126
+semantic_model_version: Q_UI_MODULE_SEMANTIC_MODEL_V6
+operations:
+- operation_id: resolve_ui_module
+  operation_ref: Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module
+  interface_refs:
+  - Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/interfaces/ui_module_resolution_invoke
+state_model:
+  mode: STATELESS
+permission_model:
+  mode: UNRESTRICTED
+instance_variability:
+  mode: NONE
+  instance_variable_count: 0
+stable_error_count: 20
+rule_count: 54
+rule_binding_count: 54
+repository_static_scope: Q.UI

@@ -1,99 +1,25 @@
-const dependency_classification = Object.freeze({
-  RECEIVING_DOMAIN_DEPENDENCY: Object.freeze([]),
-  PUBLIC_CONTRACT_DEPENDENCY: Object.freeze([
-    "Q.SS.STD.P0.CONTRACT.RUNTIME_CORE@V0134",
-    "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0183",
-  ]),
-  STANDARD_AUTHORITY_DEPENDENCY: Object.freeze([
-    "Q.SS.STD.META.CONTRACT.ARTIFACT@V0109",
-    "Q.SS.STD.META.CONTRACT.CONTRACT@V0120",
-    "Q.SS.STD.META.CONTRACT.CAPABILITY_CONTRACT@V0118",
-    "Q.SS.STD.META.CONTRACT.SYSTEM_OBJECT_NAMING.MIN@V0112",
-    "Q.SS.STD.META.CONTRACT.DIMENSION_INTERFACE_CLASSIFICATION@V0114",
-    "Q.SS.STD.META.CONTRACT.SURFACE_LAYER_MOUNT@V0114",
-    "Q.SS.STD.META.CONTRACT.FIELD_DICTIONARY@V0106",
-    "Q.SS.STD.META.CONTRACT.SYSTEM_INTERFACE@V0108",
-    "Q.SS.STD.META.CONTRACT.CONNECTION_MODE@V0107",
-    "Q.SS.STD.META.CONTRACT.PAYLOAD_SCHEMA_BOUNDARY@V0101",
-    "Q.SS.STD.META.CONTRACT.REPOSITORY_DIRECTORY_SKELETON@V0147",
-  ]),
-  PROVIDER_INTERNAL_DEPENDENCY: Object.freeze([]),
-} as const);
-
-export const capability_extraction_metadata = Object.freeze({
-  capability_contract_hash: "sha256:934b2f09e364bc533eba81d5a003debafec0af97e947bac9a7b22226f2b067ff",
-  capability_contract_ref: "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123",
-  capability_ref: "Q.UI.CAPABILITY.UI_MODULE@V0123",
-  capability_id: "ui_module",
-  capability_version: "V0122",
-  stage_contract_ref: "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0183",
-  runtime_contract_ref: "Q.SS.STD.P0.CONTRACT.RUNTIME_CORE@V0134",
-  domain_ref: "q.ui.domain.q_ui",
-  domain_ref_is_nonsemantic_compatibility_projection: true,
-  dependency_refs: Object.freeze([
-    "Q.SS.STD.P0.CONTRACT.RUNTIME_CORE@V0134",
-    "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0183",
-    "Q.SS.STD.META.CONTRACT.ARTIFACT@V0109",
-    "Q.SS.STD.META.CONTRACT.CONTRACT@V0120",
-    "Q.SS.STD.META.CONTRACT.CAPABILITY_CONTRACT@V0118",
-    "Q.SS.STD.META.CONTRACT.SYSTEM_OBJECT_NAMING.MIN@V0112",
-    "Q.SS.STD.META.CONTRACT.DIMENSION_INTERFACE_CLASSIFICATION@V0114",
-    "Q.SS.STD.META.CONTRACT.SURFACE_LAYER_MOUNT@V0114",
-    "Q.SS.STD.META.CONTRACT.FIELD_DICTIONARY@V0106",
-    "Q.SS.STD.META.CONTRACT.SYSTEM_INTERFACE@V0108",
-    "Q.SS.STD.META.CONTRACT.CONNECTION_MODE@V0107",
-    "Q.SS.STD.META.CONTRACT.PAYLOAD_SCHEMA_BOUNDARY@V0101",
-    "Q.SS.STD.META.CONTRACT.REPOSITORY_DIRECTORY_SKELETON@V0147",
-  ]),
-  dependency_classification,
-  public_operation_refs: Object.freeze([
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/operations/resolve_ui_module",
-  ]),
-  public_interface_refs: Object.freeze([
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/interfaces/ui_module_resolution_invoke",
-  ]),
-  public_contract_refs: Object.freeze([
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/contracts/resolve_ui_module_request_contract",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/contracts/resolve_ui_module_response_contract",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/stable_errors/resolve_ui_module",
-    "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@V0183#/outcome_contracts/call_outcome",
-  ]),
-  public_type_refs: Object.freeze([
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/source_capability_semantic_projection",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/source_capability_lineage",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_reference_input_binding",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_temporal_input_binding",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_request_control_binding",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_response_view_binding",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_action_binding",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_state_binding",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_permission_binding",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_evidence_view_binding",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_interface_projection",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_operation_projection",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_semantic_coverage",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_semantic_model",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_module_artifact",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_module_projection_input",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_operational_relation_projection",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_state_machine_projection",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_state_transition_projection",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_permission_projection",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_actor_class_projection",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_rule_binding_projection",
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/type_closure/schemas/ui_logic_graph_projection",
-  ]),
-  stable_error_refs: Object.freeze([
-    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/stable_errors/resolve_ui_module",
-  ]),
-  compatibility_ref: "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/compatibility",
-  source_integrity_ref: "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/source_integrity",
-  external_provider_surface_ref: "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123#/external_provider_surface",
-  direct_handler_export_forbidden: true,
-  metadata_ref: "src/p1/export/ui_module/metadata.ts#capability_extraction_metadata",
-  mode: "PUBLICATION_ELIGIBLE",
-  extraction_mode: "PUBLICATION_ELIGIBLE",
-  public_entry_ref: "src/p1/export/ui_module/entry.ts#entry",
-  source_operation_reexecution_for_extraction_forbidden: true,
-  public_collections_are_derived_from_exact_external_provider_surface: true,
-} as const);
+export const capability_extraction_metadata = {
+  "capability_ref": "Q.UI.CAPABILITY.UI_MODULE@V0126",
+  "capability_id": "ui_module",
+  "capability_version": "V0126",
+  "capability_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126",
+  "extraction_mode": "PUBLICATION_ELIGIBLE",
+  "public_entry_ref": "src/p1/export/ui_module/entry.ts#entry",
+  "metadata_ref": "src/p1/export/ui_module/metadata.ts#capability_extraction_metadata",
+  "public_operation_refs": [
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+  ],
+  "public_interface_refs": [
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/interfaces/ui_module_resolution_invoke"
+  ],
+  "public_contract_refs": [
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/contracts/resolve_ui_module_request_contract",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/contracts/resolve_ui_module_response_contract",
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/stable_errors/resolve_ui_module",
+    "Q.SS.STD.P1.CONTRACT.BUSINESS_RUNTIME@${CURRENT}#/outcome_contracts/call_outcome"
+  ],
+  "stable_error_refs": [
+    "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/stable_errors/resolve_ui_module"
+  ],
+  "semantic_model_version": "Q_UI_MODULE_SEMANTIC_MODEL_V6"
+} as const;

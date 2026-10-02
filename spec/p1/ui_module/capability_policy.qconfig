@@ -1,32 +1,520 @@
-capability_contract_ref: Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0123
-capability_contract_hash: sha256:934b2f09e364bc533eba81d5a003debafec0af97e947bac9a7b22226f2b067ff
-runtime_contract_ref: Q.SS.STD.P0.CONTRACT.RUNTIME_CORE@V0134
-fixed_skeleton_mutation_forbidden: true
-extra_operation_file_forbidden_by_default: true
-module_layer_forbidden: true
-direct_handler_export_forbidden: true
-invariants:
-- UI_MODULE consumes one exact Business Capability Contract semantic projection directly and does not consume presentation topology or downstream realization material.
-- UI_MODULE preserves exact source Operation Interface request response StableError state permission evidence and Capability Logic lineage and may not execute or re-own source business semantics.
-- UI_MODULE derives control and view shape only from exact declared payload schemas and complete x_q_field_semantics; code AI runtime samples database shape or presentation preference may not invent missing business semantics.
-- UI_MODULE does not decide application or platform presentation context navigation placement page hierarchy Surface layout Theme Render Host or server semantics.
-- The External Provider Surface contains only ui_module_resolution_invoke and downstream extraction Instance Package or P2 may not expand it.
-- The same exact source Capability Contract ref/hash External Provider Surface ref/hash and semantic projection produce the same canonical UI Module semantic artifact or fail closed.
-- Source Capability Contract and External Provider Surface material are resolve_ui_module request artifact input, are not a declared local Capability dependency, create no receiving dependency slot and do not authorize source Business Operation execution.
-- An executable source Business action binding requires exact source Capability Contract ref/hash plus exact External Provider Surface ref/hash, and the bound source Interface must be contained in that exact provider surface.
-- Every exact source request-field occurrence carries exactly one valid x_q_field_semantics classification; BUSINESS_REFERENCE and TEMPORAL semantics are projected without suffix, field-name, runtime-value or renderer inference.
-- ui_module_artifact.logic_projection completely covers exact source operational_relations state machines transitions permissions actors and rule bindings without reclassification or omission.
-persistence_requirements:
-  owner_local_persistence_required: false
-  database_objects_owned_by_capability: false
-  physical_persistence_realization_owner: exact repository owner-local Skeleton/runtime
-  retired_database_persistence_meta_contract_is_not_normative_dependency: true
-  domain_contract_required: false
-  cross_domain_database_ownership_created: false
-  persistence_may_not_expand_external_provider_surface: true
-  capability_contract_does_not_own_physical_database_objects: true
-  fixed_physical_table_names_required_by_capability_contract: false
-- Every projected request control preserves exact source variability_class GENERAL or INSTANCE; GENERAL has null instance_variable_ref and INSTANCE preserves one exact source instance_variable_ref without resolving its value.
-- POLICY_SELECTION PROVIDER_SELECTION and PORT_BINDING variability remains exact source snapshot material and does not create request controls merely by existing.
-- Source Capability successor projection always rebinds exact successor source lineage and source semantic snapshot; full deterministic recomputation is the fail-closed fallback when minimal affected scope cannot be proven.
-- Incremental reuse has no independent semantic authority and any incremental result must be canonically identical to full recomputation under the same exact successor inputs.
+{
+  "q_header": "1",
+  "stable_error_contract_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/stable_errors/resolve_ui_module",
+  "stable_error_evaluation_order": [
+    "UI_MODULE_SOURCE_CAPABILITY_LINEAGE_UNRESOLVED",
+    "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID",
+    "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
+    "UI_MODULE_REFERENCE_BINDING_INVALID",
+    "UI_MODULE_TEMPORAL_BINDING_INVALID",
+    "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS",
+    "UI_MODULE_TEMPORAL_SEMANTICS_AMBIGUOUS",
+    "UI_MODULE_REFERENCE_SEMANTICS_AMBIGUOUS",
+    "UI_MODULE_OPERATION_COVERAGE_INCOMPLETE",
+    "UI_MODULE_INTERFACE_COVERAGE_INCOMPLETE",
+    "UI_MODULE_FIELD_COVERAGE_INCOMPLETE",
+    "UI_MODULE_ACTION_LINEAGE_INCOMPLETE",
+    "UI_MODULE_OPERATIONAL_RELATION_PROJECTION_INVALID",
+    "UI_MODULE_STATE_MODEL_PROJECTION_INVALID",
+    "UI_MODULE_PERMISSION_MODEL_PROJECTION_INVALID",
+    "UI_MODULE_RULE_BINDING_PROJECTION_INVALID",
+    "UI_MODULE_LOGIC_GRAPH_COVERAGE_INCOMPLETE",
+    "UI_MODULE_OUTPUT_GRAMMAR_INVALID",
+    "UI_MODULE_PRESENTATION_CONTEXT_INPUT_FORBIDDEN",
+    "UI_MODULE_SOURCE_OPERATION_EXECUTION_FORBIDDEN"
+  ],
+  "stable_error_messages": {
+    "UI_MODULE_SOURCE_CAPABILITY_LINEAGE_UNRESOLVED": "The exact source Capability Contract ref/hash or exact External Provider Surface ref/hash cannot be resolved and verified.",
+    "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID": "The exact source Capability semantic projection is incomplete, inconsistent with its exact Contract closure, or cannot be deterministically verified.",
+    "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS": "One source request or response field cannot be mapped deterministically from its exact declared owner schema.",
+    "UI_MODULE_OPERATION_COVERAGE_INCOMPLETE": "One or more exact source Operations is missing, duplicated, or mismatched in the UI Operation projection coverage.",
+    "UI_MODULE_FIELD_COVERAGE_INCOMPLETE": "One or more exact request or response field occurrence is missing, duplicated, reordered, or not bound to its exact source schema material.",
+    "UI_MODULE_ACTION_LINEAGE_INCOMPLETE": "An executable UI action does not retain the complete exact source Capability, Operation, Interface, request, response, outcome, StableError and External Provider Surface lineage.",
+    "UI_MODULE_OUTPUT_GRAMMAR_INVALID": "The emitted UI Module Artifact does not conform to the closed owner-local interaction semantic grammar declared by this Contract.",
+    "UI_MODULE_PRESENTATION_CONTEXT_INPUT_FORBIDDEN": "Production topology, Surface, Theme, Render or Host presentation context was supplied to UI Module and is forbidden at this boundary.",
+    "UI_MODULE_SOURCE_OPERATION_EXECUTION_FORBIDDEN": "The request attempts to execute or re-own a source Business Operation during UI Module semantic projection.",
+    "UI_MODULE_REFERENCE_SEMANTICS_AMBIGUOUS": "A source field declares BUSINESS_REFERENCE semantics but exact owner, resolution, identity, cardinality, manual-entry or read/lookup closure cannot be deterministically resolved from the source Capability Contract.",
+    "UI_MODULE_TEMPORAL_SEMANTICS_AMBIGUOUS": "A source field declares TEMPORAL semantics but exact temporal kind, JSON Schema format or structured range endpoint semantics cannot be deterministically resolved from the source Capability Contract.",
+    "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE": "One or more source request-field occurrences lacks exactly one valid x_q_field_semantics classification required by the current Capability Contract authority.",
+    "UI_MODULE_REFERENCE_BINDING_INVALID": "A BUSINESS_REFERENCE field cannot be normalized into a closed reference binding because owner/dependency identity, read/lookup request mapping, result paths, candidate identity/display paths, or cardinality/schema compatibility is missing or inconsistent.",
+    "UI_MODULE_TEMPORAL_BINDING_INVALID": "A TEMPORAL field cannot be normalized into a closed temporal binding because scalar format or RANGE endpoint paths/kind are missing or inconsistent with the exact source schema.",
+    "UI_MODULE_OPERATIONAL_RELATION_PROJECTION_INVALID": "The exact source operational_relations closure cannot be projected losslessly into UI logic semantics.",
+    "UI_MODULE_STATE_MODEL_PROJECTION_INVALID": "The exact source state_model closure cannot be projected with complete state-machine, subject, applicability and transition semantics.",
+    "UI_MODULE_PERMISSION_MODEL_PROJECTION_INVALID": "The exact source permission_model closure cannot be projected with complete permission and actor identity semantics.",
+    "UI_MODULE_RULE_BINDING_PROJECTION_INVALID": "The exact source rule_bindings closure cannot be projected with complete enforcement target and evaluation-realization semantics.",
+    "UI_MODULE_LOGIC_GRAPH_COVERAGE_INCOMPLETE": "The emitted UI logic projection does not completely cover the exact source operational relation, state, permission, actor and rule-binding graph.",
+    "UI_MODULE_INTERFACE_COVERAGE_INCOMPLETE": "One or more exact source Interfaces is missing, duplicated, not under its exact owner Operation, or does not retain the exact request, response, outcome and StableError Contract identities."
+  },
+  "rule_binding_mode": "DECLARED",
+  "rule_bindings": [
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/QUI-MOD-001",
+      "enforcement_phase": "PRECONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_SOURCE_CAPABILITY_LINEAGE_UNRESOLVED",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/QUI-MOD-002",
+      "enforcement_phase": "PRECONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_SOURCE_OPERATION_EXECUTION_FORBIDDEN",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/QUI-MOD-003",
+      "enforcement_phase": "PRECONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/QUI-MOD-004",
+      "enforcement_phase": "PRECONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_PRESENTATION_CONTEXT_INPUT_FORBIDDEN",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/QUI-MOD-005",
+      "enforcement_phase": "INFORMATIONAL",
+      "evaluation_realization_mode": "INFORMATIONAL",
+      "failure_stable_error_code": null,
+      "target_operation_refs": []
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/QUI-MOD-006",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_OUTPUT_GRAMMAR_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/QUI-MOD-007",
+      "enforcement_phase": "PRECONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_SOURCE_OPERATION_EXECUTION_FORBIDDEN",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/QUI-MOD-008",
+      "enforcement_phase": "PRECONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_OUTPUT_GRAMMAR_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R009",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_OUTPUT_GRAMMAR_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R010",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_OUTPUT_GRAMMAR_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R011",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_OUTPUT_GRAMMAR_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R012",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_SOURCE_CAPABILITY_LINEAGE_UNRESOLVED",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R013",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_SOURCE_CAPABILITY_LINEAGE_UNRESOLVED",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R014",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_OPERATION_COVERAGE_INCOMPLETE",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R015",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_INTERFACE_COVERAGE_INCOMPLETE",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R016",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R017",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_PAYLOAD_SCHEMA_MAPPING_AMBIGUOUS",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R018",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_ACTION_LINEAGE_INCOMPLETE",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R019",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_OUTPUT_GRAMMAR_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R020",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_OUTPUT_GRAMMAR_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R021",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_OUTPUT_GRAMMAR_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R022",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_OUTPUT_GRAMMAR_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R023",
+      "enforcement_phase": "PRECONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R024",
+      "enforcement_phase": "PRECONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_REFERENCE_BINDING_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R025",
+      "enforcement_phase": "PRECONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_REFERENCE_BINDING_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R026",
+      "enforcement_phase": "PRECONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_REFERENCE_BINDING_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R027",
+      "enforcement_phase": "PRECONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_TEMPORAL_BINDING_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R028",
+      "enforcement_phase": "PRECONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_TEMPORAL_BINDING_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R029",
+      "enforcement_phase": "PRECONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_REFERENCE_BINDING_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R030",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_OUTPUT_GRAMMAR_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R031",
+      "enforcement_phase": "INFORMATIONAL",
+      "evaluation_realization_mode": "INFORMATIONAL",
+      "failure_stable_error_code": null,
+      "target_operation_refs": []
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R032",
+      "enforcement_phase": "INFORMATIONAL",
+      "evaluation_realization_mode": "INFORMATIONAL",
+      "failure_stable_error_code": null,
+      "target_operation_refs": []
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R033",
+      "enforcement_phase": "PRECONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_SOURCE_CAPABILITY_LINEAGE_UNRESOLVED",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R034",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_OPERATIONAL_RELATION_PROJECTION_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R035",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_STATE_MODEL_PROJECTION_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R036",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_PERMISSION_MODEL_PROJECTION_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R037",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_RULE_BINDING_PROJECTION_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R038",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_LOGIC_GRAPH_COVERAGE_INCOMPLETE",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/UI_MODULE.R039",
+      "enforcement_phase": "PRECONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_FIELD_SEMANTIC_COVERAGE_INCOMPLETE",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/Q-UI-UI_MODULE-040",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/Q-UI-UI_MODULE-041",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_FIELD_COVERAGE_INCOMPLETE",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/Q-UI-UI_MODULE-042",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_OUTPUT_GRAMMAR_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/Q-UI-UI_MODULE-043",
+      "enforcement_phase": "PRECONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_SOURCE_CAPABILITY_SEMANTIC_PROJECTION_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/Q-UI-UI_MODULE-044",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_OUTPUT_GRAMMAR_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/Q-UI-UI_MODULE-045",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_OUTPUT_GRAMMAR_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/Q-UI-UI_MODULE-046",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_OUTPUT_GRAMMAR_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/Q-UI-UI_MODULE-047",
+      "enforcement_phase": "INFORMATIONAL",
+      "evaluation_realization_mode": "INFORMATIONAL",
+      "failure_stable_error_code": null,
+      "target_operation_refs": []
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/Q-UI-UI_MODULE-048",
+      "enforcement_phase": "INFORMATIONAL",
+      "evaluation_realization_mode": "INFORMATIONAL",
+      "failure_stable_error_code": null,
+      "target_operation_refs": []
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/Q-UI-UI_MODULE-049",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_SOURCE_CAPABILITY_LINEAGE_UNRESOLVED",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/Q-UI-UI_MODULE-050",
+      "enforcement_phase": "INFORMATIONAL",
+      "evaluation_realization_mode": "INFORMATIONAL",
+      "failure_stable_error_code": null,
+      "target_operation_refs": []
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/Q-UI-UI_MODULE-051",
+      "enforcement_phase": "POSTCONDITION",
+      "evaluation_realization_mode": "OPERATION_ENFORCED",
+      "failure_stable_error_code": "UI_MODULE_OUTPUT_GRAMMAR_INVALID",
+      "target_operation_refs": [
+        "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/operations/resolve_ui_module"
+      ]
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/Q-UI-UI_MODULE-052",
+      "enforcement_phase": "INFORMATIONAL",
+      "evaluation_realization_mode": "INFORMATIONAL",
+      "failure_stable_error_code": null,
+      "target_operation_refs": []
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/Q-UI-UI_MODULE-053",
+      "enforcement_phase": "INFORMATIONAL",
+      "evaluation_realization_mode": "INFORMATIONAL",
+      "failure_stable_error_code": null,
+      "target_operation_refs": []
+    },
+    {
+      "rule_ref": "Q.UI.CONTRACT.CAPABILITY.UI_MODULE@V0126#/capability_rules/rule/Q-UI-UI_MODULE-054",
+      "enforcement_phase": "INFORMATIONAL",
+      "evaluation_realization_mode": "INFORMATIONAL",
+      "failure_stable_error_code": null,
+      "target_operation_refs": []
+    }
+  ],
+  "permission_mode": "UNRESTRICTED"
+}
